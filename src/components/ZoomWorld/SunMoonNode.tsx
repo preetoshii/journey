@@ -16,7 +16,7 @@
   - Uses Framer Motion for smooth transitions
 */
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ZoomNode } from '../../types';
 import { useZoomStore } from './useZoomStore';
 
@@ -24,6 +24,11 @@ import { useZoomStore } from './useZoomStore';
 interface SunMoonNodeProps {
   node: ZoomNode; // The node to render (sun or moon)
 }
+
+// Shared constants
+const CIRCLE_LARGE_SIZE = 600;
+const CIRCLE_SMALL_SIZE = 60;
+const BORDER_WIDTH = 2;
 
 /**
  * SunMoonNode
@@ -52,6 +57,17 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
     return 1;
   };
 
+  // --- Decoupled animation values for moons ---
+  // Circle size
+  const moonCircleSize = isMoon
+    ? (currentLevel === "level1" ? CIRCLE_SMALL_SIZE : CIRCLE_LARGE_SIZE)
+    : CIRCLE_LARGE_SIZE;
+  // Border width (shared)
+  const circleBorderWidth = BORDER_WIDTH;
+  // Text size (constant for moons)
+  const moonTitleFontSize = "2rem";
+  const moonSubtitleFontSize = "1.5rem";
+
   /**
    * handleClick
    * Handles click events for zooming/focusing on moons.
@@ -73,13 +89,8 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
       layoutId={node.id}
       initial={false}
       animate={{
-        // Animate to the node's current position for the current zoom level
         x: currentPosition.x,
         y: currentPosition.y,
-        scale: getScale(),
-        // Opacity logic:
-        // - All nodes visible at level1
-        // - At level2, only moons are visible; focused moon is fully opaque, others are faded
         opacity: currentLevel === "level1" || role === "moon"
           ? (currentLevel === "level2" && isMoon ? (isFocused ? 1 : 0.5) : 1)
           : 0
@@ -101,35 +112,115 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
         gap: "1rem"
       }}
     >
-      {/* Render the node's circle (sun or moon) */}
+      {/* Circle */}
       <motion.div
+        key={isMoon ? `moon-circle-${currentLevel}` : `sun-circle`}
         style={{
-          width: "600px",
-          height: "600px",
           borderRadius: "50%",
-          border: `2px solid ${color}`,
           backgroundColor: "transparent",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          position: "relative"
+          position: "relative",
+          borderStyle: "solid",
+          borderColor: color,
+          boxShadow: `0 0 32px 4px ${color}55`
+        }}
+        initial={{
+          width: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : CIRCLE_LARGE_SIZE,
+          height: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : CIRCLE_LARGE_SIZE,
+          borderWidth: circleBorderWidth
+        }}
+        animate={{
+          width: isMoon ? moonCircleSize : CIRCLE_LARGE_SIZE,
+          height: isMoon ? moonCircleSize : CIRCLE_LARGE_SIZE,
+          borderWidth: circleBorderWidth
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 15,
+          mass: 1,
+          bounce: 0.2
         }}
       >
-        {/* Text container that will animate between inside/outside */}
+        {/* For sun, text is always inside */}
+        {role === "sun" && (
+          <div style={{ textAlign: "center" }}>
+            <h3 style={{ margin: 0, fontSize: "2rem" }}>{title}</h3>
+            <p style={{ margin: "1rem 0 0", fontSize: "1.5rem" }}>{subtitle}</p>
+          </div>
+        )}
+      </motion.div>
+      {/* For moons, text is outside in L1, inside in L2 */}
+      {isMoon && (
         <motion.div
-          layout
           style={{
-            position: role === "moon" && currentLevel === "level1" ? "absolute" : "relative",
-            top: role === "moon" && currentLevel === "level1" ? "620px" : "0",
+            position: "absolute",
+            left: "50%",
+            width: 'max-content',
             textAlign: "center",
-            width: "100%"
+            pointerEvents: "none",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: currentLevel === "level1" ? "flex-start" : "center",
+            whiteSpace: 'nowrap',
+            minWidth: '120px',
+          }}
+          animate={{
+            top: currentLevel === "level1"
+              ? moonCircleSize + 20
+              : CIRCLE_LARGE_SIZE / 2,
+            transform: 'translate(-50%, -50%)',
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 100,
+            damping: 15,
+            mass: 1,
+            bounce: 0.2
           }}
         >
-          <motion.h3 layout style={{ margin: 0, fontSize: "2rem" }}>{title}</motion.h3>
-          <motion.p layout style={{ margin: "1rem 0 0", fontSize: "1.5rem" }}>{subtitle}</motion.p>
+          <motion.h3
+            style={{
+              margin: 0,
+              fontSize: moonTitleFontSize
+            }}
+            animate={{
+              scale: currentLevel === "level1" ? 0.5 : 1
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 15,
+              mass: 1,
+              bounce: 0.2
+            }}
+          >
+            {title}
+          </motion.h3>
+          <AnimatePresence>
+            {currentLevel === "level2" && (
+              <motion.p
+                key="subtitle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { delay: 0.3, duration: 0.3 }
+                }}
+                style={{
+                  margin: "1rem 0 0",
+                  fontSize: moonSubtitleFontSize
+                }}
+              >
+                {subtitle}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </motion.div>
-      </motion.div>
+      )}
     </motion.div>
   );
 }; 
