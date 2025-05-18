@@ -17,6 +17,7 @@
 
 import { create } from 'zustand';
 import type { ZoomLevel, ZoomState, Position } from '../../types';
+import { playSound } from './soundUtils';
 
 /**
  * useZoomStore
@@ -35,6 +36,7 @@ export const useZoomStore = create<ZoomState>((set) => ({
    */
   zoomIn: (targetMoonId?: string) => set((state) => {
     if (state.currentLevel === "level1") {
+      playSound('zoom-in.wav');
       return {
         currentLevel: "level2",
         focusedMoonId: targetMoonId || null,
@@ -50,6 +52,7 @@ export const useZoomStore = create<ZoomState>((set) => ({
    */
   zoomOut: () => set((state) => {
     if (state.currentLevel === "level2") {
+      playSound('zoom-out.wav');
       return {
         currentLevel: "level1",
         focusedMoonId: null,
