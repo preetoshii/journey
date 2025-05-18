@@ -104,20 +104,32 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
       {/* Render the node's circle (sun or moon) */}
       <motion.div
         style={{
-          width: "200px",
-          height: "200px",
+          width: "600px",
+          height: "600px",
           borderRadius: "50%",
-          backgroundColor: color,
+          border: `2px solid ${color}`,
+          backgroundColor: "transparent",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          position: "relative"
         }}
-      />
-      {/* Render the node's title and subtitle */}
-      <div style={{ textAlign: "center" }}>
-        <h3 style={{ margin: 0 }}>{title}</h3>
-        <p style={{ margin: "0.5rem 0 0" }}>{subtitle}</p>
-      </div>
+      >
+        {/* Text container that will animate between inside/outside */}
+        <motion.div
+          layout
+          style={{
+            position: role === "moon" && currentLevel === "level1" ? "absolute" : "relative",
+            top: role === "moon" && currentLevel === "level1" ? "620px" : "0",
+            textAlign: "center",
+            width: "100%"
+          }}
+        >
+          <motion.h3 layout style={{ margin: 0, fontSize: "2rem" }}>{title}</motion.h3>
+          <motion.p layout style={{ margin: "1rem 0 0", fontSize: "1.5rem" }}>{subtitle}</motion.p>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }; 

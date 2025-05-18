@@ -91,7 +91,8 @@ export const ZoomWorld = () => {
       width: "100vw", // Full viewport width
       height: "100vh", // Full viewport height
       overflow: "hidden", // Hide overflow for panning
-      position: "relative" // Position context for children
+      position: "relative", // Position context for children
+      background: "black" // Set background to black
     }}>
       {/* Main panning container. Handles drag and trackpad panning. */}
       <motion.div
