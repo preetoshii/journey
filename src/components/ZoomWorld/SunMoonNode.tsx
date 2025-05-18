@@ -147,8 +147,8 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
         {/* For sun, text is always inside */}
         {role === "sun" && (
           <div style={{ textAlign: "center" }}>
-            <h3 style={{ margin: 0, fontSize: "2rem" }}>{title}</h3>
-            <p style={{ margin: "1rem 0 0", fontSize: "1.5rem" }}>{subtitle}</p>
+            <h3 className="sunmoon-title" style={{ margin: 0, fontSize: "2rem" }}>{title}</h3>
+            <p className="sunmoon-subtitle" style={{ margin: "1rem 0 0", fontSize: "1.5rem" }}>{subtitle}</p>
           </div>
         )}
       </motion.div>
@@ -183,9 +183,11 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           }}
         >
           <motion.h3
+            className="sunmoon-title"
             style={{
               margin: 0,
-              fontSize: moonTitleFontSize
+              fontSize: moonTitleFontSize,
+              fontFamily: "'Ivar Headline', serif"
             }}
             animate={{
               scale: currentLevel === "level1" ? 0.5 : 1
@@ -201,10 +203,11 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
             {title}
           </motion.h3>
           <motion.p
+            className="sunmoon-subtitle"
             style={{
               margin: "1rem 0 0",
               fontSize: moonSubtitleFontSize,
-              height: "1.5rem", // Reserve space for the subtitle
+              height: "1.5rem" // Reserve space for the subtitle
             }}
             animate={{
               opacity: currentLevel === "level2" ? 1 : 0,
