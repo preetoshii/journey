@@ -123,8 +123,8 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           justifyContent: "center",
           position: "relative",
           borderStyle: "solid",
-          borderColor: color,
-          boxShadow: `0 0 32px 4px ${color}55`
+          borderColor: "white",
+          boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.33)`
         }}
         initial={{
           width: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : CIRCLE_LARGE_SIZE,
@@ -170,7 +170,7 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           }}
           animate={{
             top: currentLevel === "level1"
-              ? moonCircleSize + 20
+              ? moonCircleSize + 40
               : CIRCLE_LARGE_SIZE / 2,
             transform: 'translate(-50%, -50%)',
           }}
@@ -200,25 +200,23 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           >
             {title}
           </motion.h3>
-          <AnimatePresence>
-            {currentLevel === "level2" && (
-              <motion.p
-                key="subtitle"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  opacity: { delay: 0.3, duration: 0.3 }
-                }}
-                style={{
-                  margin: "1rem 0 0",
-                  fontSize: moonSubtitleFontSize
-                }}
-              >
-                {subtitle}
-              </motion.p>
-            )}
-          </AnimatePresence>
+          <motion.p
+            style={{
+              margin: "1rem 0 0",
+              fontSize: moonSubtitleFontSize,
+              height: "1.5rem", // Reserve space for the subtitle
+            }}
+            animate={{
+              opacity: currentLevel === "level2" ? 1 : 0,
+              scale: currentLevel === "level2" ? 1 : 0.8
+            }}
+            transition={{
+              opacity: { duration: 0.4 },
+              scale: { duration: 0.2 }
+            }}
+          >
+            {subtitle}
+          </motion.p>
         </motion.div>
       )}
     </motion.div>
