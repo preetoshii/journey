@@ -19,6 +19,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ZoomNode } from '../../types';
 import { useZoomStore } from './useZoomStore';
+import { MoonAnimatedBackground } from './MoonAnimatedBackground';
+import React from 'react';
+import { playRandomPentatonicNote } from './soundUtils';
 
 // Props for the SunMoonNode component
 interface SunMoonNodeProps {
@@ -26,9 +29,10 @@ interface SunMoonNodeProps {
 }
 
 // Shared constants
-const CIRCLE_LARGE_SIZE = 600;
+const CIRCLE_LARGE_SIZE = 750;
+const SUN_LARGE_SIZE = 400;
 const CIRCLE_SMALL_SIZE = 60;
-const BORDER_WIDTH = 2;
+const BORDER_WIDTH = 1.5;
 
 /**
  * SunMoonNode
@@ -44,7 +48,19 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
   const isMoon = role === "moon";
   const currentPosition = positions[currentLevel];
   const isFocused = node.id === focusedMoonId;
+  const [tapAnim, setTapAnim] = React.useState(false);
+  const [bgActive, setBgActive] = React.useState(false);
   
+  // Delay activation of animated background after focusing in L2
+  React.useEffect(() => {
+    if (currentLevel === "level2" && isMoon && isFocused) {
+      const timeout = setTimeout(() => setBgActive(true), 800);
+      return () => clearTimeout(timeout);
+    } else {
+      setBgActive(false);
+    }
+  }, [currentLevel, isMoon, isFocused]);
+
   /**
    * getScale
    * Returns the scale for the node based on its role and the current zoom level.
@@ -61,12 +77,12 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
   // Circle size
   const moonCircleSize = isMoon
     ? (currentLevel === "level1" ? CIRCLE_SMALL_SIZE : CIRCLE_LARGE_SIZE)
-    : CIRCLE_LARGE_SIZE;
+    : (currentLevel === "level1" ? SUN_LARGE_SIZE : CIRCLE_LARGE_SIZE);
   // Border width (shared)
   const circleBorderWidth = BORDER_WIDTH;
   // Text size (constant for moons)
   const moonTitleFontSize = "2rem";
-  const moonSubtitleFontSize = "1.5rem";
+  const moonSubtitleFontSize = "1.05rem";
 
   /**
    * handleClick
@@ -76,11 +92,14 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
    */
   const handleClick = () => {
     if (currentLevel === "level1" && isMoon) {
+      playRandomPentatonicNote();
       zoomIn(node.id);
     } else if (currentLevel === "level2" && isMoon) {
+      playRandomPentatonicNote();
       // Set this moon as the focused moon and trigger panning
       useZoomStore.setState({ focusedMoonId: node.id });
       setPanTarget({ x: 0, y: 0 });
+      setTapAnim(true);
     }
   };
 
@@ -113,6 +132,15 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
       }}
     >
       {/* Circle */}
+      {isMoon && currentLevel === "level2" && (
+        <MoonAnimatedBackground
+          color={color}
+          active={bgActive}
+          gridImageUrl="/src/assets/grid.png"
+          rotatingImageUrl="/src/assets/rotatingimage.png"
+          size={CIRCLE_LARGE_SIZE}
+        />
+      )}
       <motion.div
         key={isMoon ? `moon-circle-${currentLevel}` : `sun-circle`}
         style={{
@@ -124,31 +152,35 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           position: "relative",
           borderStyle: "solid",
           borderColor: "white",
-          boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.33)`
+          boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`
         }}
         initial={{
-          width: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : CIRCLE_LARGE_SIZE,
-          height: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : CIRCLE_LARGE_SIZE,
+          width: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : (currentLevel === "level1" ? SUN_LARGE_SIZE : CIRCLE_LARGE_SIZE),
+          height: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : (currentLevel === "level1" ? SUN_LARGE_SIZE : CIRCLE_LARGE_SIZE),
           borderWidth: circleBorderWidth
         }}
         animate={{
           width: isMoon ? moonCircleSize : CIRCLE_LARGE_SIZE,
           height: isMoon ? moonCircleSize : CIRCLE_LARGE_SIZE,
-          borderWidth: circleBorderWidth
+          borderWidth: circleBorderWidth,
+          scale: tapAnim ? 1.15 : 1
         }}
         transition={{
           type: "spring",
           stiffness: 100,
           damping: 15,
           mass: 1,
-          bounce: 0.2
+          bounce: 0.2,
+          scale: { duration: 0.3, ease: "easeInOut" }
+        }}
+        onAnimationComplete={() => {
+          if (tapAnim) setTapAnim(false);
         }}
       >
         {/* For sun, text is always inside */}
         {role === "sun" && (
-          <div style={{ textAlign: "center" }}>
-            <h3 className="sunmoon-title" style={{ margin: 0, fontSize: "2rem" }}>{title}</h3>
-            <p className="sunmoon-subtitle" style={{ margin: "1rem 0 0", fontSize: "1.5rem" }}>{subtitle}</p>
+          <div style={{ textAlign: "center", padding: "0 160px" }}>
+            <h3 className="sunmoon-title" style={{ margin: 0, fontSize: "2.1rem", lineHeight: 1.5, padding: "0 0.1em" }}>{title}</h3>
           </div>
         )}
       </motion.div>
@@ -165,7 +197,6 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: currentLevel === "level1" ? "flex-start" : "center",
-            whiteSpace: 'nowrap',
             minWidth: '120px',
           }}
           animate={{
@@ -207,14 +238,21 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
             style={{
               margin: "1rem 0 0",
               fontSize: moonSubtitleFontSize,
-              height: "1.5rem" // Reserve space for the subtitle
+              height: "1.5rem", // Reserve space for the subtitle
+              maxWidth: currentLevel === "level2" ? `${CIRCLE_LARGE_SIZE - 40}px` : undefined,
+              padding: currentLevel === "level2" ? "0 120px" : undefined,
+              boxSizing: "border-box",
+              textAlign: "center",
+              lineHeight: 2
             }}
             animate={{
-              opacity: currentLevel === "level2" ? 1 : 0,
-              scale: currentLevel === "level2" ? 1 : 0.8
+              opacity: currentLevel === "level2" && isFocused ? 1 : 0,
+              scale: currentLevel === "level2" && isFocused ? 1 : 0.8
             }}
             transition={{
-              opacity: { duration: 0.4 },
+              opacity: currentLevel === "level2" && isFocused
+                ? { duration: 1.2, delay: 0.25 }
+                : { duration: 0, delay: 0 },
               scale: { duration: 0.2 }
             }}
           >

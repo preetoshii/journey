@@ -28,11 +28,11 @@ const nodes: ZoomNode[] = [
   {
     id: "sun",
     role: "sun",
-    title: "The Sun",
-    subtitle: "Center of our universe",
+    title: "Become the steady, luminous presence, grounded in truth, and fully here.",
+    subtitle: "",
     color: "#FFD700",
     positions: {
-      level1: { x: 0, y: 0 },
+      level1: { x: 0, y: -100 },
       level2: { x: 0, y: 0 },
       level3: { x: 0, y: 0 }
     }
@@ -40,36 +40,36 @@ const nodes: ZoomNode[] = [
   {
     id: "moon1",
     role: "moon",
-    title: "Moon One",
-    subtitle: "First moon",
-    color: "#4A90E2",
+    title: "Embody inspiring leadership",
+    subtitle: "You couldn't name what was scary about leading before. This month, you uncovered it — taking up space — and began carving a path forward.",
+    color: "#874b80",
     positions: {
-      level1: { x: -300, y: 0 },
-      level2: { x: -400, y: -200 },
+      level1: { x: -520, y: -100 },
+      level2: { x: -460, y: -250 },
       level3: { x: 0, y: 0 }
     }
   },
   {
     id: "moon2",
     role: "moon",
-    title: "Moon Two",
-    subtitle: "Second moon",
-    color: "#50E3C2",
+    title: "Break free from distraction",
+    subtitle: "You mentioned several moments you were distracted during family time. But this month, you carved out focused blocks, and unplugged at the park. Nice.",
+    color: "#5a8271",
     positions: {
-      level1: { x: 0, y: 300 },
-      level2: { x: 0, y: 400 },
+      level1: { x: 0, y: 350 },
+      level2: { x: 0, y: 500 },
       level3: { x: 0, y: 0 }
     }
   },
   {
     id: "moon3",
     role: "moon",
-    title: "Moon Three",
-    subtitle: "Third moon",
-    color: "#F5A623",
+    title: "Stand firm in my stance",
+    subtitle: "Before, you often sidestepped disagreement. This month, you held your view in multiple team calls, especially in that priority tradeoff last Thursday.",
+    color: "#a05674",
     positions: {
-      level1: { x: 300, y: 0 },
-      level2: { x: 400, y: -200 },
+      level1: { x: 520, y: -100 },
+      level2: { x: 460, y: -250 },
       level3: { x: 0, y: 0 }
     }
   }
