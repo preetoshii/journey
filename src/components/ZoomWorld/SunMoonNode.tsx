@@ -22,6 +22,7 @@ import { useZoomStore } from './useZoomStore';
 import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import React from 'react';
 import { playRandomPentatonicNote } from './soundUtils';
+import { ArcProgressBar } from './ArcProgressBar';
 
 // Props for the SunMoonNode component
 interface SunMoonNodeProps {
@@ -51,6 +52,7 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
   const [tapAnim, setTapAnim] = React.useState(false);
   const [bgActive, setBgActive] = React.useState(false);
   const [wasInLevel1, setWasInLevel1] = React.useState(false);
+  const [arcActive, setArcActive] = React.useState(false);
   
   // Track if we were in level 1
   React.useEffect(() => {
@@ -84,6 +86,16 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
       setBgActive(false);
     }
   }, [currentLevel, isMoon, isFocused, wasInLevel1]);
+
+  // Show arc with 0.6s delay on focus in L2
+  React.useEffect(() => {
+    if (isMoon && currentLevel === "level2" && isFocused) {
+      const timeout = setTimeout(() => setArcActive(true), 600);
+      return () => clearTimeout(timeout);
+    } else {
+      setArcActive(false);
+    }
+  }, [isMoon, currentLevel, isFocused]);
 
   /**
    * getScale
@@ -154,13 +166,27 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
     >
       {/* Circle */}
       {isMoon && currentLevel === "level2" && (
-        <MoonAnimatedBackground
-          color={color}
-          active={bgActive}
-          gridImageUrl="/src/assets/grid.png"
-          rotatingImageUrl="/src/assets/rotatingimage.png"
-          size={CIRCLE_LARGE_SIZE}
-        />
+        <>
+          <MoonAnimatedBackground
+            color={color}
+            active={bgActive}
+            gridImageUrl="/src/assets/grid.png"
+            rotatingImageUrl="/src/assets/rotatingimage.png"
+            size={CIRCLE_LARGE_SIZE}
+          />
+          {isFocused && arcActive && (
+            <ArcProgressBar
+              progress={typeof node.progress === 'number' ? node.progress : 0}
+              radius={CIRCLE_LARGE_SIZE / 2 - BORDER_WIDTH / 2 - 10 / 2}
+              thickness={10}
+              color="white"
+              glowColor="rgba(255,255,255,0.18)"
+              active={true}
+              animationDuration={1.2}
+              containerSize={CIRCLE_LARGE_SIZE}
+            />
+          )}
+        </>
       )}
       <motion.div
         key={isMoon ? `moon-circle-${currentLevel}` : `sun-circle`}
