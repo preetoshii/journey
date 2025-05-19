@@ -172,8 +172,8 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
           <MoonAnimatedBackground
             color={color}
             active={bgActive}
-            gridImageUrl="/src/assets/grid.png"
-            rotatingImageUrl="/src/assets/rotatingimage.png"
+            gridImageUrl="/moon-backgrounds/grid.png"
+            rotatingImageUrl="/moon-backgrounds/rotatingimage.png"
             size={CIRCLE_LARGE_SIZE}
           />
           {isFocused && arcActive && (
