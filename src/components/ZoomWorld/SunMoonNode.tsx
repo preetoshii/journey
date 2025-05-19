@@ -50,16 +50,40 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
   const isFocused = node.id === focusedMoonId;
   const [tapAnim, setTapAnim] = React.useState(false);
   const [bgActive, setBgActive] = React.useState(false);
+  const [wasInLevel1, setWasInLevel1] = React.useState(false);
   
+  // Track if we were in level 1
+  React.useEffect(() => {
+    if (currentLevel === "level1") {
+      setWasInLevel1(true);
+    } else if (currentLevel === "level2") {
+      setWasInLevel1(false);
+    }
+  }, [currentLevel]);
+
+  // Effect to handle focus changes
+  React.useEffect(() => {
+    if (isFocused && currentLevel === "level2") {
+      setTapAnim(true);
+      playRandomPentatonicNote();
+    }
+  }, [isFocused, currentLevel]);
+
   // Delay activation of animated background after focusing in L2
   React.useEffect(() => {
     if (currentLevel === "level2" && isMoon && isFocused) {
-      const timeout = setTimeout(() => setBgActive(true), 800);
-      return () => clearTimeout(timeout);
+      if (wasInLevel1) {
+        // If coming from level 1, delay the background
+        const timeout = setTimeout(() => setBgActive(true), 800);
+        return () => clearTimeout(timeout);
+      } else {
+        // If already in level 2, activate immediately
+        setBgActive(true);
+      }
     } else {
       setBgActive(false);
     }
-  }, [currentLevel, isMoon, isFocused]);
+  }, [currentLevel, isMoon, isFocused, wasInLevel1]);
 
   /**
    * getScale
@@ -92,14 +116,11 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
    */
   const handleClick = () => {
     if (currentLevel === "level1" && isMoon) {
-      playRandomPentatonicNote();
       zoomIn(node.id);
     } else if (currentLevel === "level2" && isMoon) {
-      playRandomPentatonicNote();
       // Set this moon as the focused moon and trigger panning
       useZoomStore.setState({ focusedMoonId: node.id });
       setPanTarget({ x: 0, y: 0 });
-      setTapAnim(true);
     }
   };
 
@@ -201,7 +222,7 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           }}
           animate={{
             top: currentLevel === "level1"
-              ? moonCircleSize + 40
+              ? moonCircleSize + 55
               : CIRCLE_LARGE_SIZE / 2,
             transform: 'translate(-50%, -50%)',
           }}

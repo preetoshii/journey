@@ -1,56 +1,106 @@
-# ZoomWorld Developer Guide
+# Journey Page
 
-## Overview
-ZoomWorld is a modular, zoomable, and pannable React interface featuring a central Sun and multiple Moons. It supports smooth spring-based animations, magnetic snapping, and unified drag/trackpad panning. The system is designed for clarity, flexibility, and easy extension.
+An interactive, zoomable interface featuring a central Sun and three Moons. Built with React, TypeScript, and Framer Motion.
 
----
+## 🚀 Quick Start
 
-## Architecture
-- **ZoomWorld.tsx**: Main UI component. Renders all nodes and zoom controls. Wires up panning/snapping via the `usePanning` hook.
-- **SunMoonNode.tsx**: Renders a single node (Sun or Moon) with animation, scaling, and click logic.
-- **ZoomControls.tsx**: Renders zoom in/out buttons, wired to the global zoom state.
-- **usePanning.ts**: Custom hook encapsulating all panning, trackpad, and magnetic snapping logic. The single source of truth for movement mechanics.
-- **useZoomStore.ts**: Zustand store for global zoom/focus/pan state and actions.
-- **types.ts**: All shared types and interfaces for nodes, positions, and state.
+1. **Clone the repository**
+   ```bash
+   git clone [repository-url]
+   cd journeypage
+   ```
 
----
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-## How to Use
-1. **Run the app**: `npm install && npm run dev`
-2. **Main entry**: `App.tsx` renders `ZoomWorld` full-screen.
-3. **Zooming**: Use the +/− controls or click a moon to zoom/focus.
-4. **Panning**: Drag or use the trackpad to pan. Release to magnetically snap to the nearest moon.
-5. **Customization**: All movement, snapping, and animation logic is in `usePanning.ts`.
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
----
+4. **Open your browser**
+   The app will be available at `http://localhost:5173`
 
-## Extending & Modifying
-- **Change panning/snapping behavior**: Edit `usePanning.ts` (timing, velocity, spring physics, etc.).
-- **Add new node types or zoom levels**: Update `types.ts` and node data in `ZoomWorld.tsx`.
-- **Change zoom/focus logic**: Edit `useZoomStore.ts` for new state/actions.
-- **Style nodes**: Edit `SunMoonNode.tsx` for appearance, scaling, and opacity logic.
-- **Add new controls**: Extend `ZoomControls.tsx` or add new UI components.
+## 🎯 Features
 
----
+- **Interactive Zoom Levels**: Smooth transitions between different views
+- **Magnetic Snapping**: Moons snap into place when dragged
+- **Sound Effects**: Musical feedback on interactions
+- **Animated Backgrounds**: Dynamic backgrounds for focused moons
+- **Responsive Design**: Works across different screen sizes
 
-## File Guide
-- `src/components/ZoomWorld/ZoomWorld.tsx`: Main world UI, highly commented.
-- `src/components/ZoomWorld/SunMoonNode.tsx`: Node rendering/animation, highly commented.
-- `src/components/ZoomWorld/ZoomControls.tsx`: Zoom controls, highly commented.
-- `src/components/ZoomWorld/usePanning.ts`: All panning/snapping logic, highly commented.
-- `src/components/ZoomWorld/useZoomStore.ts`: Zustand store, highly commented.
-- `src/types.ts`: All shared types, highly commented.
+## 🛠️ Tech Stack
 
----
+- React
+- TypeScript
+- Vite
+- Framer Motion (animations)
+- Zustand (state management)
 
-## Best Practices
-- **All movement logic is unified**: Drag and trackpad use the same system for maintainability.
-- **All files are thoroughly documented**: See comments for architecture and extension points.
-- **To change mechanics, edit only `usePanning.ts`**: No need to touch UI code for movement changes.
+## 🎨 Project Structure
 
----
+```
+src/
+├── components/
+│   └── ZoomWorld/         # Main zoomable interface
+│       ├── SunMoonNode.tsx    # Individual sun/moon nodes
+│       ├── ZoomControls.tsx   # Zoom in/out controls
+│       └── usePanning.ts      # Panning and snapping logic
+├── types.ts               # TypeScript type definitions
+└── assets/               # Images, fonts, and sounds
+```
 
-## Getting Help
-- Read the comments in each file for detailed explanations.
-- For new features, start by updating types and the store, then extend the UI or panning logic as needed.
-- For questions, see the comments or ask your team lead.
+## 🎮 How to Use
+
+1. **Level 1 (Overview)**
+   - View the central Sun and three Moons
+   - Click any Moon to zoom in
+   - Use the zoom-in button in the bottom right
+
+2. **Level 2 (Detail)**
+   - Drag to pan around
+   - Moons will snap into place when released
+   - Click a Moon to focus it
+   - Use the zoom-out button to return to Level 1
+
+## 🎵 Sound Effects
+
+The interface includes:
+- Pentatonic notes when focusing moons
+- Zoom in/out sounds
+- Button click feedback
+
+## 🎨 Styling
+
+- Fonts: Ivar Headline (titles) and Sohne (subtitles)
+- Colors: Custom color scheme for each moon
+- Animations: Spring physics for natural movement
+
+## 🤝 Contributing
+
+1. Create a new branch for your feature
+2. Make your changes
+3. Submit a pull request
+
+## 📝 Notes
+
+- The interface is designed to be modular and extensible
+- All animations use Framer Motion for smooth transitions
+- State management is handled through Zustand for simplicity
+
+## 🐛 Known Issues
+
+- None at the moment
+
+## 🔜 Future Improvements
+
+- Additional zoom levels
+- More interactive elements
+- Enhanced sound design
+- Performance optimizations
+
+## 📫 Questions?
+
+Feel free to reach out to the team or create an issue in the repository.

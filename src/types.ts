@@ -38,6 +38,7 @@ export interface ZoomNode {
 export interface ZoomState {
   currentLevel: ZoomLevel; // Current zoom level
   focusedMoonId: string | null; // ID of focused moon (if any)
+  lastFocusedMoonId: string | null; // ID of the last focused moon
   panTarget: Position | null; // Target position for imperative panning
   zoomIn: (targetMoonId?: string) => void; // Action: zoom in
   zoomOut: () => void; // Action: zoom out
