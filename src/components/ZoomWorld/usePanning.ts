@@ -26,10 +26,10 @@ import type { ZoomNode } from '../../types';
 import { useZoomStore } from './useZoomStore';
 
 // Props for the usePanning hook
-interface UsePanningProps {
-  nodes: ZoomNode[]; // Array of all nodes (sun and moons)
-  currentLevel: string; // Current zoom level (e.g. 'level1', 'level2')
-}
+type UsePanningProps = {
+  nodes: ZoomNode[];
+  currentLevel: string;
+};
 
 /**
  * usePanning
@@ -57,7 +57,7 @@ export const usePanning = ({ nodes, currentLevel }: UsePanningProps) => {
     // If we're in level2 and a panTarget is set (e.g. after clicking a moon)
     if (currentLevel === "level2" && panTarget) {
       // Find the focused moon node
-      const targetMoon = nodes.find(node => node.id === focusedMoonId);
+      const targetMoon = nodes.find((node: ZoomNode) => node.id === focusedMoonId);
       if (targetMoon) {
         // Get the moon's position for level2
         const targetPosition = targetMoon.positions.level2;
@@ -106,7 +106,7 @@ export const usePanning = ({ nodes, currentLevel }: UsePanningProps) => {
     let closestMoon: ZoomNode | null = null;
     let minDistance = Infinity;
     // Loop through all nodes and find the closest moon
-    nodes.forEach(node => {
+    nodes.forEach((node: ZoomNode) => {
       if (node.role === "moon") {
         const moonX = node.positions.level2.x;
         const moonY = node.positions.level2.y;
@@ -165,24 +165,8 @@ export const usePanning = ({ nodes, currentLevel }: UsePanningProps) => {
         x: currentPosition.current.x + deltaX,
         y: currentPosition.current.y + deltaY
       };
-      // Velocity-based detection: if movement is slowing down, snap sooner
-      const isSlowingDown = 
-        Math.abs(deltaX) < Math.abs(lastDeltaRef.current.x) * 0.5 &&
-        Math.abs(deltaY) < Math.abs(lastDeltaRef.current.y) * 0.5;
-      // Update last delta for next event
-      lastDeltaRef.current = { x: deltaX, y: deltaY };
-      // Clear any existing timeout for snapping
-      if (trackpadTimeoutRef.current) {
-        clearTimeout(trackpadTimeoutRef.current);
-      }
-      // Set a new timeout to snap to the closest moon after movement stops
-      trackpadTimeoutRef.current = window.setTimeout(() => {
-        const closestMoon = findClosestMoon(currentPosition.current);
-        if (closestMoon) {
-          useZoomStore.setState({ focusedMoonId: closestMoon.id });
-          setPanTarget({ x: 0, y: 0 });
-        }
-      }, isSlowingDown ? 50 : 100); // Shorter delay if slowing down
+      // --- Removed all snapping logic for trackpad ---
+      // No snapping to closest moon after wheel events
     }
   };
 
