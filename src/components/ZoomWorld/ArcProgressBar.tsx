@@ -11,6 +11,7 @@ interface ArcProgressBarProps {
   active: boolean;
   animationDuration?: number; // seconds
   containerSize?: number; // SVG size (default 750)
+  onDebugChange?: (isDebug: boolean) => void; // Callback for debug state changes
 }
 
 // Helper: Convert polar to cartesian
@@ -40,8 +41,9 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   glowColor = "rgba(255,255,255,0.18)",
   head,
   active,
-  animationDuration = 1.2,
+  animationDuration = 1.3,
   containerSize = 750,
+  onDebugChange,
 }) => {
   const center = containerSize / 2;
   const startAngle = Math.PI / 2; // 90deg, bottom
@@ -53,9 +55,24 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     if (!debug) setDebugProgress(progress);
   }, [progress, debug]);
 
+  // Track if this is the first time becoming active
+  const [isFirstActivation, setIsFirstActivation] = React.useState(true);
+
+  React.useEffect(() => {
+    if (active && isFirstActivation) {
+      setIsFirstActivation(false);
+    } else if (!active) {
+      setIsFirstActivation(true);
+    }
+  }, [active]);
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'd' || e.key === 'D') setDebug((prev) => !prev);
+      if (e.key === 'd' || e.key === 'D') {
+        const newDebug = !debug;
+        setDebug(newDebug);
+        onDebugChange?.(newDebug);
+      }
       if (debug) {
         if (e.key === 'ArrowRight') setDebugProgress((p) => Math.min(100, p + 20));
         if (e.key === 'ArrowLeft') setDebugProgress((p) => Math.max(0, p - 20));
@@ -63,20 +80,32 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [debug]);
+  }, [debug, onDebugChange]);
 
   // Use debug progress if in debug mode
   const effectiveProgress = debug ? debugProgress : progress;
 
   // Animate progress with Framer Motion
-  const progressMotion = useMotionValue(effectiveProgress);
-  const spring = useSpring(progressMotion, { duration: animationDuration, damping: 20, stiffness: 120 });
+  const progressMotion = useMotionValue(isFirstActivation ? 0 : effectiveProgress);
+  const spring = useSpring(progressMotion, { 
+    duration: animationDuration, 
+    damping: 20, 
+    stiffness: 120 
+  });
 
   React.useEffect(() => {
     if (active) {
-      progressMotion.set(effectiveProgress);
+      // If it's first activation, animate from 0 to target
+      if (isFirstActivation) {
+        progressMotion.set(0);
+        setTimeout(() => {
+          progressMotion.set(effectiveProgress);
+        }, 400); // Increased delay to start after growth animation
+      } else {
+        progressMotion.set(effectiveProgress);
+      }
     }
-  }, [effectiveProgress, active, progressMotion]);
+  }, [effectiveProgress, active, progressMotion, isFirstActivation]);
 
   // Derived animated progress value
   const [animatedProgress, setAnimatedProgress] = React.useState(effectiveProgress);
@@ -131,7 +160,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
           stroke={glowColor}
           initial={{ strokeWidth: 0 }}
           animate={{ strokeWidth: thickness * 2.2 }}
-          transition={{ duration: 2.75, ease: 'easeInOut' }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
           fill="none"
           style={{ filter: `blur(6px)` }}
         />
@@ -143,7 +172,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
           stroke={color}
           initial={{ strokeWidth: 0 }}
           animate={{ strokeWidth: thickness }}
-          transition={{ duration: 2.75, ease: 'easeInOut' }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
           fill="none"
           strokeLinecap="round"
         />
@@ -164,7 +193,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
               cy={headPos.y}
               initial={{ r: 0 }}
               animate={{ r: thickness * 0.8 }}
-              transition={{ duration: 2.75, ease: 'easeInOut' }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
               fill={color}
               stroke="#fff"
               strokeWidth={2}

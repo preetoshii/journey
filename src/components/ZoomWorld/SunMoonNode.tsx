@@ -27,6 +27,7 @@ import { ArcProgressBar } from './ArcProgressBar';
 // Props for the SunMoonNode component
 interface SunMoonNodeProps {
   node: ZoomNode; // The node to render (sun or moon)
+  onDebugChange?: (isDebug: boolean) => void; // Callback for debug state changes
 }
 
 // Shared constants
@@ -39,7 +40,7 @@ const BORDER_WIDTH = 1.5;
  * SunMoonNode
  * Renders a single node (sun or moon) with animation and click logic.
  */
-export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
+export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
   // --- Get relevant state and actions from the store ---
   const { currentLevel, zoomIn, setPanTarget, focusedMoonId } = useZoomStore();
   // --- Destructure node properties ---
@@ -53,6 +54,7 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
   const [bgActive, setBgActive] = React.useState(false);
   const [wasInLevel1, setWasInLevel1] = React.useState(false);
   const [arcActive, setArcActive] = React.useState(false);
+  const [isDebug, setIsDebug] = React.useState(false);
   
   // Track if we were in level 1
   React.useEffect(() => {
@@ -177,13 +179,14 @@ export const SunMoonNode = ({ node }: SunMoonNodeProps) => {
           {isFocused && arcActive && (
             <ArcProgressBar
               progress={typeof node.progress === 'number' ? node.progress : 0}
-              radius={CIRCLE_LARGE_SIZE / 2 - BORDER_WIDTH / 2 - 10 / 2}
+              radius={CIRCLE_LARGE_SIZE / 2}
               thickness={10}
               color="white"
               glowColor="rgba(255,255,255,0.18)"
               active={true}
-              animationDuration={1.2}
-              containerSize={CIRCLE_LARGE_SIZE}
+              animationDuration={1.3}
+              containerSize={CIRCLE_LARGE_SIZE + 20}
+              onDebugChange={onDebugChange}
             />
           )}
         </>

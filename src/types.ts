@@ -32,6 +32,7 @@ export interface ZoomNode {
   subtitle: string; // Display subtitle
   positions: Record<ZoomLevel, Position>; // Position for each zoom level
   color: string; // Node color
+  progress?: number; // Optional progress value (0-100)
 }
 
 // --- Zustand store state for zoom world ---

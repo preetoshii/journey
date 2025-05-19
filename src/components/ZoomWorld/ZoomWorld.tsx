@@ -90,6 +90,7 @@ export const ZoomWorld = () => {
   // --- Get panning/snapping logic from custom hook ---
   const { x, y, controls, handleDragEnd, handleWheel } = usePanning({ nodes, currentLevel });
   const setFocus = useZoomStore((s) => s.setPanTarget);
+  const [isAnyMoonInDebug, setIsAnyMoonInDebug] = React.useState(false);
 
   // Keyboard navigation for L2
   const lastTopMoonRef = React.useRef('moon1');
@@ -104,6 +105,10 @@ export const ZoomWorld = () => {
       if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
       if (e.key === ']') zoomIn();
       if (e.key === '[') zoomOut();
+      
+      // Skip moon navigation if any moon is in debug mode
+      if (isAnyMoonInDebug) return;
+      
       let nextId = null;
       if (focusedMoonId === 'moon1') {
         if (e.key === 'ArrowRight') nextId = 'moon3';
@@ -123,7 +128,7 @@ export const ZoomWorld = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentLevel, focusedMoonId, setFocus, zoomIn, zoomOut]);
+  }, [currentLevel, focusedMoonId, setFocus, zoomIn, zoomOut, isAnyMoonInDebug]);
 
   return (
     <div style={{ 
@@ -153,7 +158,20 @@ export const ZoomWorld = () => {
       >
         {/* Render all nodes (sun and moons) */}
         {nodes.map((node) => (
-          <SunMoonNode key={node.id} node={node} />
+          <SunMoonNode 
+            key={node.id} 
+            node={node} 
+            onDebugChange={(isDebug) => {
+              if (isDebug) {
+                setIsAnyMoonInDebug(true);
+              } else {
+                // Only set to false if no other moons are in debug mode
+                // This would require tracking individual moon debug states
+                // For now, we'll just set it to false
+                setIsAnyMoonInDebug(false);
+              }
+            }}
+          />
         ))}
       </motion.div>
       {/* Render zoom controls */}
