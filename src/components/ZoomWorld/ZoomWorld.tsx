@@ -131,13 +131,30 @@ export const ZoomWorld = () => {
   }, [currentLevel, focusedMoonId, setFocus, zoomIn, zoomOut, isAnyMoonInDebug]);
 
   return (
-    <div style={{ 
-      width: "100vw", // Full viewport width
-      height: "100vh", // Full viewport height
-      overflow: "hidden", // Hide overflow for panning
-      position: "relative", // Position context for children
-      background: "black" // Set background to black
-    }}>
+    <div 
+      style={{ 
+        width: "100vw", // Full viewport width
+        height: "100vh", // Full viewport height
+        overflow: "hidden", // Hide overflow for panning
+        position: "relative", // Position context for children
+        background: "black" // Set background to black
+      }}
+      onMouseDown={(e) => {
+        // Set a flag to detect drag vs click
+        (window as any)._zoomWorldMouseDown = { x: e.clientX, y: e.clientY };
+      }}
+      onMouseUp={(e) => {
+        // Only handle in level2
+        if (currentLevel !== 'level2') return;
+        // If mouse moved more than a few pixels, treat as drag, not click
+        const down = (window as any)._zoomWorldMouseDown;
+        if (down && (Math.abs(e.clientX - down.x) > 5 || Math.abs(e.clientY - down.y) > 5)) return;
+        // If the click target is inside a moon node, ignore
+        if ((e.target as HTMLElement).closest('[data-zoom-moon]')) return;
+        // Otherwise, zoom out
+        zoomOut();
+      }}
+    >
       {/* Main panning container. Handles drag and trackpad panning. */}
       <motion.div
         drag={currentLevel !== "level1"} // Enable drag except at level1
@@ -165,12 +182,10 @@ export const ZoomWorld = () => {
               if (isDebug) {
                 setIsAnyMoonInDebug(true);
               } else {
-                // Only set to false if no other moons are in debug mode
-                // This would require tracking individual moon debug states
-                // For now, we'll just set it to false
                 setIsAnyMoonInDebug(false);
               }
             }}
+            data-zoom-moon={node.role === 'moon' ? 'true' : undefined}
           />
         ))}
       </motion.div>

@@ -165,6 +165,7 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
         alignItems: "center",
         gap: "1rem"
       }}
+      data-zoom-moon={isMoon ? 'true' : undefined}
     >
       {/* Circle */}
       {isMoon && currentLevel === "level2" && (
