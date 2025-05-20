@@ -85,6 +85,7 @@ export const ZoomControls = () => {
           onAnimationComplete={() => {
             if (zoomInAnim) setTimeout(() => setZoomInAnim(false), 0);
           }}
+          whileHover={{ scale: 1.13 }}
         >
           {/* Magnifying glass with plus */}
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -123,6 +124,7 @@ export const ZoomControls = () => {
           onAnimationComplete={() => {
             if (zoomOutAnim) setTimeout(() => setZoomOutAnim(false), 0);
           }}
+          whileHover={{ scale: 1.13 }}
         >
           {/* Magnifying glass with minus */}
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#ccc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

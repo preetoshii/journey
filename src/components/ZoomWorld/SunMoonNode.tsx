@@ -166,6 +166,7 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
         gap: "1rem"
       }}
       data-zoom-moon={isMoon ? 'true' : undefined}
+      whileHover={{ scale: 1.07 }}
     >
       {/* Circle */}
       {isMoon && currentLevel === "level2" && (
