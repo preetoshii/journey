@@ -203,7 +203,7 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
           justifyContent: "center",
           position: "relative",
           borderStyle: "solid",
-          borderColor: "white",
+          borderColor: isMoon && currentLevel === "level2" ? color : "white",
           boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`
         }}
         initial={{
@@ -265,6 +265,29 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
             bounce: 0.2
           }}
         >
+          {/* GOAL label for L2 moons when focused, absolutely positioned above title */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: currentLevel === "level2" && isFocused ? 1 : 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              position: 'absolute',
+              top: '-2.2em',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontFamily: "'Sohne', sans-serif",
+              fontWeight: 400,
+              fontSize: "1.05rem",
+              letterSpacing: "0.13em",
+              color: "#888",
+              textTransform: "uppercase",
+              opacity: 0.85,
+              pointerEvents: 'none',
+              zIndex: 2
+            }}
+          >
+            GOAL
+          </motion.div>
           <motion.h3
             className="sunmoon-title"
             style={{
