@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 interface MoonAnimatedBackgroundProps {
   color: string; // Flat background color (per-moon)
   active: boolean; // Whether the background is active (fade in/out)
-  gridImageUrl: string; // URL for the grid overlay image
   rotatingImageUrl: string; // URL for the rotating overlay image
   size?: number; // Optional: size of the background (defaults to 600)
 }
@@ -21,7 +20,6 @@ interface MoonAnimatedBackgroundProps {
 export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
   color,
   active,
-  gridImageUrl,
   rotatingImageUrl,
   size = 600,
 }) => {
@@ -63,26 +61,8 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
           zIndex: 1,
         }}
       />
-      {/* Layer 2: Grid overlay */}
+      {/* Layer 3: Rotating overlay (now static) */}
       <img
-        src={gridImageUrl}
-        alt="Grid overlay"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          borderRadius: '50%',
-          zIndex: 2,
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}
-        draggable={false}
-      />
-      {/* Layer 3: Rotating overlay */}
-      <motion.img
         src={rotatingImageUrl}
         alt="Rotating overlay"
         style={{
@@ -98,12 +78,6 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
           userSelect: 'none',
         }}
         draggable={false}
-        animate={{ rotate: 360 }}
-        transition={{
-          repeat: Infinity,
-          duration: 30,
-          ease: 'linear',
-        }}
       />
     </motion.div>
   );

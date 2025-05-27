@@ -27,26 +27,14 @@ import React, { useEffect } from 'react';
 // In a real app, this would come from props or an API
 const nodes: ZoomNode[] = [
   {
-    id: "sun",
-    role: "sun",
-    title: "Become the steady, luminous presence, grounded in truth, and fully here.",
-    subtitle: "",
-    color: "#FFD700",
-    positions: {
-      level1: { x: 0, y: -100 },
-      level2: { x: 0, y: 0 },
-      level3: { x: 0, y: 0 }
-    }
-  },
-  {
     id: "moon1",
     role: "moon",
     title: "Embody inspiring leadership",
     subtitle: "You couldn't name what was scary about leading before. This month, you uncovered it — taking up space — and began carving a path forward.",
-    color: "#874b80",
+    color: "#a43e63",
     positions: {
-      level1: { x: -535, y: -100 },
-      level2: { x: -460, y: -250 },
+      level1: { x: -480, y: 25 },
+      level2: { x: -480, y: 25 },
       level3: { x: 0, y: 0 }
     },
     progress: 50
@@ -56,10 +44,10 @@ const nodes: ZoomNode[] = [
     role: "moon",
     title: "Break free from distraction",
     subtitle: "You mentioned several moments you were distracted during family time. But this month, you carved out focused blocks, and unplugged at the park. Nice.",
-    color: "#5a8271",
+    color: "#4a9063",
     positions: {
-      level1: { x: 0, y: 380 },
-      level2: { x: 0, y: 500 },
+      level1: { x: 0, y: 135 },
+      level2: { x: 0, y: 135 },
       level3: { x: 0, y: 0 }
     },
     progress: 75
@@ -69,10 +57,10 @@ const nodes: ZoomNode[] = [
     role: "moon",
     title: "Stand firm in my stance",
     subtitle: "Before, you often sidestepped disagreement. This month, you held your view in multiple team calls, especially in that priority tradeoff last Thursday.",
-    color: "#a05674",
+    color: "#8e4fb6",
     positions: {
-      level1: { x: 535, y: -100 },
-      level2: { x: 460, y: -250 },
+      level1: { x: 480, y: 25 },
+      level2: { x: 480, y: 25 },
       level3: { x: 0, y: 0 }
     },
     progress: 30
@@ -189,8 +177,49 @@ export const ZoomWorld = () => {
           />
         ))}
       </motion.div>
-      {/* Render zoom controls */}
-      <ZoomControls />
+      {/* Aspiration headline and North Star icon for both L1 and L2 */}
+      <div style={{
+        position: 'absolute',
+        top: 150,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        zIndex: 10
+      }}>
+        {/* Diamond-shaped North Star icon (SVG) */}
+        <div style={{
+          width: 48, height: 48, marginBottom: 8,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="22,2 27,17 42,22 27,27 22,42 17,27 2,22 17,17" fill="#FF4B9B" />
+          </svg>
+        </div>
+        <div style={{
+          fontFamily: 'Sohne, sans-serif',
+          fontWeight: 400,
+          fontSize: 16,
+          letterSpacing: '0.13em',
+          color: '#aaa',
+          textTransform: 'uppercase',
+          marginBottom: 18
+        }}>
+          NORTH STAR
+        </div>
+        <div style={{
+          fontFamily: 'Ivar Headline, serif',
+          fontWeight: 400,
+          fontSize: 32,
+          color: 'white',
+          textAlign: 'center',
+          maxWidth: 480,
+          lineHeight: 1.3
+        }}>
+          To become the wild kid at summer camp all those years ago.
+        </div>
+      </div>
     </div>
   );
 }; 

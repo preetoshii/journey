@@ -37,15 +37,7 @@ export const useZoomStore = create<ZoomState>((set) => ({
    * If no moon is provided but there's a last focused moon, uses that.
    */
   zoomIn: (targetMoonId?: string) => set((state) => {
-    if (state.currentLevel === "level1") {
-      playSound('zoom-in.wav');
-      const moonToFocus = targetMoonId || state.lastFocusedMoonId;
-      return {
-        currentLevel: "level2",
-        focusedMoonId: moonToFocus || null,
-        panTarget: moonToFocus ? { x: 0, y: 0 } : null
-      };
-    }
+    // No-op or custom logic for new L1
     return state;
   }),
 
@@ -55,15 +47,7 @@ export const useZoomStore = create<ZoomState>((set) => ({
    * Stores the current focused moon as lastFocusedMoonId before clearing.
    */
   zoomOut: () => set((state) => {
-    if (state.currentLevel === "level2") {
-      playSound('zoom-out.wav');
-      return {
-        currentLevel: "level1",
-        focusedMoonId: null,
-        lastFocusedMoonId: state.focusedMoonId, // Store current focus before clearing
-        panTarget: null
-      };
-    }
+    // No-op or custom logic for new L1
     return state;
   }),
 

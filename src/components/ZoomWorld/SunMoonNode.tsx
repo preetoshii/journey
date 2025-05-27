@@ -32,10 +32,24 @@ interface SunMoonNodeProps {
 }
 
 // Shared constants
-const CIRCLE_LARGE_SIZE = 750;
+const CIRCLE_L1_SIZE = 440;
 const SUN_LARGE_SIZE = 400;
 const CIRCLE_SMALL_SIZE = 60;
-const BORDER_WIDTH = 1.5;
+const BORDER_WIDTH = 3;
+
+// Helper to lighten a hex color
+function lightenColor(hex: string, amount: number) {
+  let col = hex.replace('#', '');
+  if (col.length === 3) col = col.split('').map(x => x + x).join('');
+  const num = parseInt(col, 16);
+  let r = (num >> 16) + amount;
+  let g = ((num >> 8) & 0x00FF) + amount;
+  let b = (num & 0x0000FF) + amount;
+  r = Math.min(255, Math.max(0, r));
+  g = Math.min(255, Math.max(0, g));
+  b = Math.min(255, Math.max(0, b));
+  return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+}
 
 /**
  * SunMoonNode
@@ -50,7 +64,7 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
   // --- Derived state ---
   const isMoon = role === "moon";
   const currentPosition = positions[currentLevel];
-  const isFocused = node.id === focusedMoonId;
+  const isFocused = true; // Always show the focused state for L2 moons
   const [tapAnim, setTapAnim] = React.useState(false);
   const [bgActive, setBgActive] = React.useState(false);
   const [wasInLevel1, setWasInLevel1] = React.useState(false);
@@ -114,14 +128,12 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
 
   // --- Decoupled animation values for moons ---
   // Circle size
-  const moonCircleSize = isMoon
-    ? (currentLevel === "level1" ? CIRCLE_SMALL_SIZE : CIRCLE_LARGE_SIZE)
-    : (currentLevel === "level1" ? SUN_LARGE_SIZE : CIRCLE_LARGE_SIZE);
+  const moonCircleSize = isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE;
   // Border width (shared)
   const circleBorderWidth = BORDER_WIDTH;
   // Text size (constant for moons)
-  const moonTitleFontSize = "2rem";
-  const moonSubtitleFontSize = "1.05rem";
+  const moonTitleFontSize = "1.6rem";
+  const moonSubtitleFontSize = "0.95rem";
 
   /**
    * handleClick
@@ -169,55 +181,94 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
       data-zoom-moon={isMoon ? 'true' : undefined}
     >
       {/* Circle */}
-      {isMoon && currentLevel === "level2" && (
+      {isMoon && (
         <>
-          {/* Segmented progress bar (thin, under border) */}
-          {isFocused && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: arcActive ? 1 : 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                style={{ position: 'absolute', inset: 0 }}
-              >
-                <SegmentedArcProgressBar
-                  segments={[
-                    { color: '#3A8DFF' }, // blue
-                    { color: '#FF6A3A' }, // orange-red
-                    { color: '#1DE9B6' }, // greenish-teal
-                  ]}
-                  radius={CIRCLE_LARGE_SIZE / 2 - BORDER_WIDTH / 2}
-                  thickness={BORDER_WIDTH}
-                  containerSize={CIRCLE_LARGE_SIZE}
-                  active={true}
-                />
-              </motion.div>
-              {arcActive && (
-                <ArcProgressBar
-                  progress={typeof node.progress === 'number' ? node.progress : 0}
-                  radius={CIRCLE_LARGE_SIZE / 2}
-                  thickness={10}
-                  color="white"
-                  glowColor="rgba(255,255,255,0.18)"
-                  active={true}
-                  animationDuration={1.3}
-                  containerSize={CIRCLE_LARGE_SIZE + 20}
-                  onDebugChange={onDebugChange}
-                />
-              )}
-            </>
-          )}
+          <ArcProgressBar
+            progress={typeof node.progress === 'number' ? node.progress : 0}
+            radius={CIRCLE_L1_SIZE / 2}
+            thickness={6}
+            color="white"
+            glowColor="rgba(255,255,255,0.18)"
+            active={true}
+            animationDuration={1.3}
+            containerSize={CIRCLE_L1_SIZE + 40}
+            onDebugChange={onDebugChange}
+          />
           <MoonAnimatedBackground
             color={color}
-            active={bgActive}
-            gridImageUrl="/moon-backgrounds/grid.png"
+            active={true}
             rotatingImageUrl="/moon-backgrounds/rotatingimage.png"
-            size={CIRCLE_LARGE_SIZE}
+            size={CIRCLE_L1_SIZE}
           />
+          <motion.div
+            style={{
+              position: "absolute",
+              left: "50%",
+              width: 'max-content',
+              textAlign: "center",
+              pointerEvents: "none",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: '120px',
+            }}
+            initial={{
+              top: CIRCLE_L1_SIZE / 2,
+              transform: 'translate(-50%, -50%)',
+            }}
+            animate={{
+              top: CIRCLE_L1_SIZE / 2,
+              transform: 'translate(-50%, -50%)',
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 15,
+              mass: 1,
+              bounce: 0.2
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "'Sohne', sans-serif",
+                fontWeight: 400,
+                fontSize: "1.05rem",
+                letterSpacing: "0.13em",
+                color: "#888",
+                textTransform: "uppercase",
+                marginBottom: "0.7em",
+                marginTop: "-0.2em",
+                opacity: 0.85
+              }}
+            >
+              GOAL
+            </div>
+            <motion.h3
+              className="sunmoon-title"
+              style={{
+                margin: 0,
+                fontSize: moonTitleFontSize,
+                fontFamily: "'Ivar Headline', serif"
+              }}
+              animate={{
+                scale: 1
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                mass: 1,
+                bounce: 0.2
+              }}
+            >
+              {title}
+            </motion.h3>
+          </motion.div>
         </>
       )}
       <motion.div
-        key={isMoon ? `moon-circle-${currentLevel}` : `sun-circle`}
+        key={isMoon ? `moon-circle` : `sun-circle`}
         style={{
           borderRadius: "50%",
           backgroundColor: "transparent",
@@ -226,17 +277,17 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
           justifyContent: "center",
           position: "relative",
           borderStyle: "solid",
-          borderColor: "white",
+          borderColor: isMoon ? lightenColor(color, 60) : "white",
           boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`
         }}
         initial={{
-          width: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : (currentLevel === "level1" ? SUN_LARGE_SIZE : CIRCLE_LARGE_SIZE),
-          height: isMoon ? (currentLevel === "level1" ? CIRCLE_LARGE_SIZE : CIRCLE_SMALL_SIZE) : (currentLevel === "level1" ? SUN_LARGE_SIZE : CIRCLE_LARGE_SIZE),
+          width: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
+          height: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
           borderWidth: circleBorderWidth
         }}
         animate={{
-          width: isMoon ? moonCircleSize : CIRCLE_LARGE_SIZE,
-          height: isMoon ? moonCircleSize : CIRCLE_LARGE_SIZE,
+          width: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
+          height: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
           borderWidth: circleBorderWidth,
           scale: tapAnim ? 1.15 : 1
         }}
@@ -259,82 +310,6 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
           </div>
         )}
       </motion.div>
-      {/* For moons, text is outside in L1, inside in L2 */}
-      {isMoon && (
-        <motion.div
-          style={{
-            position: "absolute",
-            left: "50%",
-            width: 'max-content',
-            textAlign: "center",
-            pointerEvents: "none",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: currentLevel === "level1" ? "flex-start" : "center",
-            minWidth: '120px',
-          }}
-          animate={{
-            top: currentLevel === "level1"
-              ? moonCircleSize + 55
-              : CIRCLE_LARGE_SIZE / 2,
-            transform: 'translate(-50%, -50%)',
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 15,
-            mass: 1,
-            bounce: 0.2
-          }}
-        >
-          <motion.h3
-            className="sunmoon-title"
-            style={{
-              margin: 0,
-              fontSize: moonTitleFontSize,
-              fontFamily: "'Ivar Headline', serif"
-            }}
-            animate={{
-              scale: currentLevel === "level1" ? 0.5 : 1
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 100,
-              damping: 15,
-              mass: 1,
-              bounce: 0.2
-            }}
-          >
-            {title}
-          </motion.h3>
-          <motion.p
-            className="sunmoon-subtitle"
-            style={{
-              margin: "1rem 0 0",
-              fontSize: moonSubtitleFontSize,
-              height: "1.5rem", // Reserve space for the subtitle
-              maxWidth: currentLevel === "level2" ? `${CIRCLE_LARGE_SIZE - 40}px` : undefined,
-              padding: currentLevel === "level2" ? "0 120px" : undefined,
-              boxSizing: "border-box",
-              textAlign: "center",
-              lineHeight: 2
-            }}
-            animate={{
-              opacity: currentLevel === "level2" && isFocused ? 1 : 0,
-              scale: currentLevel === "level2" && isFocused ? 1 : 0.8
-            }}
-            transition={{
-              opacity: currentLevel === "level2" && isFocused
-                ? { duration: 1.2, delay: 0.25 }
-                : { duration: 0, delay: 0 },
-              scale: { duration: 0.2 }
-            }}
-          >
-            {subtitle}
-          </motion.p>
-        </motion.div>
-      )}
     </motion.div>
   );
 }; 
