@@ -125,7 +125,11 @@ export const ZoomWorld = () => {
         height: "100vh", // Full viewport height
         overflow: "hidden", // Hide overflow for panning
         position: "relative", // Position context for children
-        background: "black" // Set background to black
+        background: "black",
+        backgroundImage: 'url(/assets/bg_temporary.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
       onMouseDown={(e) => {
         // Set a flag to detect drag vs click
@@ -162,10 +166,11 @@ export const ZoomWorld = () => {
         onWheel={handleWheel} // Unified trackpad handler
       >
         {/* Render all nodes (sun and moons) */}
-        {nodes.map((node) => (
+        {nodes.map((node, idx) => (
           <SunMoonNode 
             key={node.id} 
             node={node} 
+            staggerOffset={idx * 3} // 3s stagger per moon
             onDebugChange={(isDebug) => {
               if (isDebug) {
                 setIsAnyMoonInDebug(true);
@@ -180,9 +185,9 @@ export const ZoomWorld = () => {
       {/* Aspiration headline and North Star icon for both L1 and L2 */}
       <div style={{
         position: 'absolute',
-        top: 150,
+        top: '50%',
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: 'translate(-50%, calc(-100% - 220px))',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

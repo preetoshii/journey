@@ -6,6 +6,7 @@ interface MoonAnimatedBackgroundProps {
   active: boolean; // Whether the background is active (fade in/out)
   rotatingImageUrl: string; // URL for the rotating overlay image
   size?: number; // Optional: size of the background (defaults to 600)
+  staggerOffset?: number; // Optional: animation delay in seconds
 }
 
 /**
@@ -22,6 +23,7 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
   active,
   rotatingImageUrl,
   size = 600,
+  staggerOffset = 0,
 }) => {
   return (
     <motion.div
@@ -62,7 +64,7 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
         }}
       />
       {/* Layer 3: Rotating overlay (now static) */}
-      <img
+      <motion.img
         src={rotatingImageUrl}
         alt="Rotating overlay"
         style={{
@@ -78,6 +80,13 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
           userSelect: 'none',
         }}
         draggable={false}
+        animate={{ rotate: [0, 30, -30, 0] }}
+        transition={{
+          duration: 18,
+          ease: 'easeInOut',
+          repeat: Infinity,
+          delay: staggerOffset,
+        }}
       />
     </motion.div>
   );

@@ -192,8 +192,13 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
               cx={headPos.x}
               cy={headPos.y}
               initial={{ r: 0 }}
-              animate={{ r: thickness * 1.8 }}
-              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              animate={{ r: [thickness * 1.8, thickness * 2.2, thickness * 1.8] }}
+              transition={{
+                duration: 1.8,
+                ease: 'easeInOut',
+                repeat: Infinity,
+                repeatType: 'loop',
+              }}
               fill={color}
               stroke="#fff"
               strokeWidth={2}

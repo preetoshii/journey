@@ -29,6 +29,7 @@ import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
 interface SunMoonNodeProps {
   node: ZoomNode; // The node to render (sun or moon)
   onDebugChange?: (isDebug: boolean) => void; // Callback for debug state changes
+  staggerOffset?: number; // Optional: stagger animation offset in seconds
 }
 
 // Shared constants
@@ -55,7 +56,7 @@ function lightenColor(hex: string, amount: number) {
  * SunMoonNode
  * Renders a single node (sun or moon) with animation and click logic.
  */
-export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
+export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonNodeProps) => {
   // --- Get relevant state and actions from the store ---
   const { currentLevel, zoomIn, setPanTarget, focusedMoonId } = useZoomStore();
   // --- Destructure node properties ---
@@ -157,17 +158,24 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
       initial={false}
       animate={{
         x: currentPosition.x,
-        y: currentPosition.y,
+        y: [currentPosition.y - 5, currentPosition.y + 5, currentPosition.y - 5],
         opacity: currentLevel === "level1" || role === "moon"
           ? (currentLevel === "level2" && isMoon ? (isFocused ? 1 : 0.5) : 1)
-          : 0
+          : 0,
+        scale: tapAnim ? 1.15 : 1
       }}
+      whileHover={isMoon ? { scale: 1.06 } : {}}
       transition={{
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        mass: 1,
-        bounce: 0.2
+        x: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
+        y: {
+          duration: 5,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "reverse",
+          delay: staggerOffset || 0
+        },
+        opacity: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
+        scale: { type: "spring", stiffness: 300, damping: 20 }
       }}
       onClick={handleClick}
       style={{
@@ -199,6 +207,7 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
             active={true}
             rotatingImageUrl="/moon-backgrounds/rotatingimage.png"
             size={CIRCLE_L1_SIZE}
+            staggerOffset={staggerOffset}
           />
           <motion.div
             style={{
