@@ -37,7 +37,12 @@ const nodes: ZoomNode[] = [
       level2: { x: -480, y: 25 },
       level3: { x: 0, y: 0 }
     },
-    progress: 50
+    progress: 50,
+    recentActions: [
+      "Recently, you led a team meeting with confidence.",
+      "You gave feedback to a peer despite discomfort.",
+      "You volunteered to present at the all-hands.",
+    ]
   },
   {
     id: "moon2",
@@ -50,7 +55,12 @@ const nodes: ZoomNode[] = [
       level2: { x: 0, y: 135 },
       level3: { x: 0, y: 0 }
     },
-    progress: 75
+    progress: 75,
+    recentActions: [
+      "Recently, you worked on a wheel of life exercise and discovered things.",
+      "You put your phone away during dinner.",
+      "You finished a book without distractions.",
+    ]
   },
   {
     id: "moon3",
@@ -63,7 +73,12 @@ const nodes: ZoomNode[] = [
       level2: { x: 480, y: 25 },
       level3: { x: 0, y: 0 }
     },
-    progress: 30
+    progress: 30,
+    recentActions: [
+      "Recently, you held your view in a tough meeting.",
+      "You spoke up about priorities last Thursday.",
+      "You disagreed constructively in a team call.",
+    ]
   }
 ];
 
@@ -194,14 +209,33 @@ export const ZoomWorld = () => {
         zIndex: 10
       }}>
         {/* Diamond-shaped North Star icon (SVG) */}
-        <div style={{
-          width: 48, height: 48, marginBottom: 8,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <motion.div
+          style={{
+            width: 48, height: 48, marginBottom: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          animate={{
+            scale: [1, 1.18, 1],
+            rotate: [0, 180]
+          }}
+          transition={{
+            scale: {
+              duration: 2.2,
+              ease: 'easeInOut',
+              repeat: Infinity,
+            },
+            rotate: {
+              duration: 1,
+              ease: 'easeInOut',
+              repeat: Infinity,
+              repeatDelay: 13
+            }
+          }}
+        >
           <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <polygon points="22,2 27,17 42,22 27,27 22,42 17,27 2,22 17,17" fill="#FF4B9B" />
           </svg>
-        </div>
+        </motion.div>
         <div style={{
           fontFamily: 'Sohne, sans-serif',
           fontWeight: 400,

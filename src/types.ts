@@ -33,6 +33,7 @@ export interface ZoomNode {
   positions: Record<ZoomLevel, Position>; // Position for each zoom level
   color: string; // Node color
   progress?: number; // Optional progress value (0-100)
+  recentActions?: string[]; // Optional: recent actions for moons
 }
 
 // --- Zustand store state for zoom world ---

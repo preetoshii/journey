@@ -24,6 +24,7 @@ import React from 'react';
 import { playRandomPentatonicNote } from './soundUtils';
 import { ArcProgressBar } from './ArcProgressBar';
 import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
+import { RotatingSubtitle } from './RotatingSubtitle';
 
 // Props for the SunMoonNode component
 interface SunMoonNodeProps {
@@ -152,13 +153,18 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
     }
   };
 
+  // Stagger the subtitle rotation for each moon by id (0ms, 200ms, 400ms)
+  let subtitleDelay = 0;
+  if (node.id === 'moon2') subtitleDelay = 200;
+  if (node.id === 'moon3') subtitleDelay = 400;
+
   return (
     <motion.div
       layoutId={node.id}
       initial={false}
       animate={{
         x: currentPosition.x,
-        y: [currentPosition.y - 5, currentPosition.y + 5, currentPosition.y - 5],
+        y: currentPosition.y,
         opacity: currentLevel === "level1" || role === "moon"
           ? (currentLevel === "level2" && isMoon ? (isFocused ? 1 : 0.5) : 1)
           : 0,
@@ -167,13 +173,6 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
       whileHover={isMoon ? { scale: 1.06 } : {}}
       transition={{
         x: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
-        y: {
-          duration: 5,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: staggerOffset || 0
-        },
         opacity: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
         scale: { type: "spring", stiffness: 300, damping: 20 }
       }}
@@ -184,7 +183,8 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "1rem"
+        gap: "1rem",
+        mixBlendMode: isMoon ? 'screen' : undefined,
       }}
       data-zoom-moon={isMoon ? 'true' : undefined}
     >
@@ -209,6 +209,14 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
             size={CIRCLE_L1_SIZE}
             staggerOffset={staggerOffset}
           />
+          {/*
+            Text block for the moon node:
+            - "QUEST" label (static)
+            - Title (static)
+            - RotatingSubtitle (cycles through recent actions, animated)
+            This block is absolutely centered in the moon.
+            The RotatingSubtitle is designed to be easily swappable for future data sources.
+          */}
           <motion.div
             style={{
               position: "absolute",
@@ -251,7 +259,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
                 opacity: 0.85
               }}
             >
-              GOAL
+              QUEST
             </div>
             <motion.h3
               className="sunmoon-title"
@@ -273,6 +281,10 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
             >
               {title}
             </motion.h3>
+            {/* RotatingSubtitle: cycles through recent actions for this moon. */}
+            {Array.isArray(node.recentActions) && node.recentActions.length > 0 && (
+              <RotatingSubtitle actions={node.recentActions} delay={subtitleDelay} />
+            )}
           </motion.div>
         </>
       )}

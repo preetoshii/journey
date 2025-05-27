@@ -48,6 +48,7 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        mixBlendMode: 'screen',
       }}
     >
       {/* Layer 1: Flat color */}
@@ -80,12 +81,23 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
           userSelect: 'none',
         }}
         draggable={false}
-        animate={{ rotate: [0, 30, -30, 0] }}
+        animate={{ 
+          rotate: [0, 30, -30, 0],
+          scale: [1, 1.3, 1]
+        }}
         transition={{
-          duration: 18,
-          ease: 'easeInOut',
-          repeat: Infinity,
-          delay: staggerOffset,
+          rotate: {
+            duration: 18,
+            ease: 'easeInOut',
+            repeat: Infinity,
+            delay: staggerOffset,
+          },
+          scale: {
+            duration: 6.5,
+            ease: 'easeInOut',
+            repeat: Infinity,
+            delay: staggerOffset,
+          }
         }}
       />
     </motion.div>
