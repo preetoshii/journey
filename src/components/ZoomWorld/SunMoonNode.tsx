@@ -23,6 +23,7 @@ import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import React from 'react';
 import { playRandomPentatonicNote } from './soundUtils';
 import { ArcProgressBar } from './ArcProgressBar';
+import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
 
 // Props for the SunMoonNode component
 interface SunMoonNodeProps {
@@ -170,6 +171,42 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
       {/* Circle */}
       {isMoon && currentLevel === "level2" && (
         <>
+          {/* Segmented progress bar (thin, under border) */}
+          {isFocused && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: arcActive ? 1 : 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                style={{ position: 'absolute', inset: 0 }}
+              >
+                <SegmentedArcProgressBar
+                  segments={[
+                    { color: '#3A8DFF' }, // blue
+                    { color: '#FF6A3A' }, // orange-red
+                    { color: '#1DE9B6' }, // greenish-teal
+                  ]}
+                  radius={CIRCLE_LARGE_SIZE / 2 - BORDER_WIDTH / 2}
+                  thickness={BORDER_WIDTH}
+                  containerSize={CIRCLE_LARGE_SIZE}
+                  active={true}
+                />
+              </motion.div>
+              {arcActive && (
+                <ArcProgressBar
+                  progress={typeof node.progress === 'number' ? node.progress : 0}
+                  radius={CIRCLE_LARGE_SIZE / 2}
+                  thickness={10}
+                  color="white"
+                  glowColor="rgba(255,255,255,0.18)"
+                  active={true}
+                  animationDuration={1.3}
+                  containerSize={CIRCLE_LARGE_SIZE + 20}
+                  onDebugChange={onDebugChange}
+                />
+              )}
+            </>
+          )}
           <MoonAnimatedBackground
             color={color}
             active={bgActive}
@@ -177,19 +214,6 @@ export const SunMoonNode = ({ node, onDebugChange }: SunMoonNodeProps) => {
             rotatingImageUrl="/moon-backgrounds/rotatingimage.png"
             size={CIRCLE_LARGE_SIZE}
           />
-          {isFocused && arcActive && (
-            <ArcProgressBar
-              progress={typeof node.progress === 'number' ? node.progress : 0}
-              radius={CIRCLE_LARGE_SIZE / 2}
-              thickness={10}
-              color="white"
-              glowColor="rgba(255,255,255,0.18)"
-              active={true}
-              animationDuration={1.3}
-              containerSize={CIRCLE_LARGE_SIZE + 20}
-              onDebugChange={onDebugChange}
-            />
-          )}
         </>
       )}
       <motion.div
