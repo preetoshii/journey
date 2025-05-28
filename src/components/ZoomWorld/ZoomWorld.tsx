@@ -39,8 +39,15 @@ const nodes: ZoomNode[] = [
     },
     progress: 50,
     recentActions: [
-      "Recently, you led a team meeting with confidence.",
-      "You gave feedback to a peer despite discomfort.",
+      // Discovery
+      "You uncovered why you hesitate to take the lead in group settings.",
+      "You realized your fear of being judged holds you back from speaking up.",
+      "You noticed you defer decisions to avoid conflict.",
+      // Practice
+      "You roleplayed leading a tough conversation with your coach.",
+      "You practiced giving clear direction in a mock scenario.",
+      "You wrote down your leadership values and shared them with a peer.",
+      // Action
       "You volunteered to present at the all-hands.",
     ]
   },
@@ -57,9 +64,16 @@ const nodes: ZoomNode[] = [
     },
     progress: 75,
     recentActions: [
-      "Recently, you worked on a wheel of life exercise and discovered things.",
+      // Discovery
+      "You noticed your biggest distraction trigger is checking your phone after meetings.",
+      "You tracked your attention and found afternoons are your least focused.",
+      "You realized you multitask most when feeling anxious.",
+      // Practice
+      "You practiced a 10-minute daily digital detox.",
+      "You set a timer for focused work and reflected on the results.",
+      "You tried mindful breathing when you felt the urge to check your phone.",
+      // Action
       "You put your phone away during dinner.",
-      "You finished a book without distractions.",
     ]
   },
   {
@@ -75,9 +89,16 @@ const nodes: ZoomNode[] = [
     },
     progress: 30,
     recentActions: [
-      "Recently, you held your view in a tough meeting.",
-      "You spoke up about priorities last Thursday.",
-      "You disagreed constructively in a team call.",
+      // Discovery
+      "You uncovered why you struggle with delegation and saying no.",
+      "You noticed you avoid conflict to keep the peace, even when it costs you.",
+      "You realized you feel guilty when prioritizing your own work.",
+      // Practice
+      "You roleplayed saying no to further requests.",
+      "You practiced stating your opinion first in a group discussion.",
+      "You wrote out your boundaries and rehearsed them aloud.",
+      // Action
+      "You held your view in a tough meeting.",
     ]
   }
 ];

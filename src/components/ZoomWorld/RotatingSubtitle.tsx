@@ -53,7 +53,7 @@ export const RotatingSubtitle: React.FC<{
 
   // AnimatePresence handles fade out/in
   return (
-    <div style={{ minHeight: 56, marginTop: 18, padding: '0 64px' }}>
+    <div style={{ minHeight: 56, marginTop: 18, padding: '0 64px', width: '80%' }}>
       <AnimatePresence mode="wait">
         {visible && (
           <motion.div
@@ -65,9 +65,9 @@ export const RotatingSubtitle: React.FC<{
             style={{
               fontFamily: "'Sohne', sans-serif",
               fontWeight: 400,
-              fontSize: '0.95rem',
-              color: '#ccc',
-              lineHeight: 1.5,
+              fontSize: '0.88rem',
+              color: '#888',
+              lineHeight: 1.7,
               textAlign: 'center',
               maxWidth: 420,
               margin: '0 auto',
