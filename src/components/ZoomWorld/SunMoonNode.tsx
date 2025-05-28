@@ -202,6 +202,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
         alignItems: "center",
         gap: "1rem",
         mixBlendMode: isMoon ? 'screen' : undefined,
+        pointerEvents: 'auto',
       }}
       data-zoom-moon={isMoon ? 'true' : undefined}
     >

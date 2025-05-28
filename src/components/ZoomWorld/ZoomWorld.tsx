@@ -22,6 +22,7 @@ import { ZoomControls } from './ZoomControls';
 import type { ZoomNode } from '../../types';
 import { usePanning } from './usePanning';
 import React, { useEffect } from 'react';
+import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 
 // --- Sample data for nodes (sun and moons) ---
 // In a real app, this would come from props or an API
@@ -116,6 +117,7 @@ export const ZoomWorld = () => {
   const setFocus = useZoomStore((s) => s.setPanTarget);
   const [isAnyMoonInDebug, setIsAnyMoonInDebug] = React.useState(false);
   const [hoveredMoonId, setHoveredMoonId] = React.useState<string | null>(null);
+  const mode = useJourneyModeStore((s) => s.mode);
 
   // Keyboard navigation for L2
   const lastTopMoonRef = React.useRef('moon1');
@@ -162,6 +164,7 @@ export const ZoomWorld = () => {
         height: "100vh", // Full viewport height
         overflow: "hidden", // Hide overflow for panning
         position: "relative", // Position context for children
+        pointerEvents: 'none',
       }}
       onMouseDown={(e) => {
         // Set a flag to detect drag vs click
@@ -217,68 +220,6 @@ export const ZoomWorld = () => {
           />
         ))}
       </motion.div>
-      {/* Aspiration headline and North Star icon for both L1 and L2 */}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, calc(-100% - 190px))',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        zIndex: 10
-      }}>
-        {/* Diamond-shaped North Star icon (SVG) */}
-        <motion.div
-          style={{
-            width: 48, height: 48, marginBottom: 8,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-          animate={{
-            scale: [1, 1.18, 1],
-            rotate: [0, 180]
-          }}
-          transition={{
-            scale: {
-              duration: 2.2,
-              ease: 'easeInOut',
-              repeat: Infinity,
-            },
-            rotate: {
-              duration: 1,
-              ease: 'easeInOut',
-              repeat: Infinity,
-              repeatDelay: 13
-            }
-          }}
-        >
-          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="22,2 27,17 42,22 27,27 22,42 17,27 2,22 17,17" fill="#FF4B9B" />
-          </svg>
-        </motion.div>
-        <div style={{
-          fontFamily: 'Sohne, sans-serif',
-          fontWeight: 400,
-          fontSize: 16,
-          letterSpacing: '0.13em',
-          color: '#aaa',
-          textTransform: 'uppercase',
-          marginBottom: 18
-        }}>
-          NORTH STAR
-        </div>
-        <div style={{
-          fontFamily: 'Ivar Headline, serif',
-          fontWeight: 400,
-          fontSize: 32,
-          color: 'white',
-          textAlign: 'center',
-          maxWidth: 480,
-          lineHeight: 1.3
-        }}>
-          To become the wild kid at summer camp all those years ago.
-        </div>
-      </div>
     </div>
   );
 }; 
