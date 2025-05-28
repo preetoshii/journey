@@ -31,6 +31,9 @@ interface SunMoonNodeProps {
   node: ZoomNode; // The node to render (sun or moon)
   onDebugChange?: (isDebug: boolean) => void; // Callback for debug state changes
   staggerOffset?: number; // Optional: stagger animation offset in seconds
+  hoveredMoonId?: string | null;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 // Shared constants
@@ -53,11 +56,22 @@ function lightenColor(hex: string, amount: number) {
   return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
 }
 
+// Helper to convert hex color to rgba with alpha
+function hexToRgba(hex: string, alpha: number) {
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 /**
  * SunMoonNode
  * Renders a single node (sun or moon) with animation and click logic.
  */
-export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonNodeProps) => {
+export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave }: SunMoonNodeProps) => {
   // --- Get relevant state and actions from the store ---
   const { currentLevel, zoomIn, setPanTarget, focusedMoonId } = useZoomStore();
   // --- Destructure node properties ---
@@ -158,6 +172,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
   if (node.id === 'moon2') subtitleDelay = 200;
   if (node.id === 'moon3') subtitleDelay = 400;
 
+  const isDimmed = hoveredMoonId && hoveredMoonId !== node.id;
   return (
     <motion.div
       layoutId={node.id}
@@ -165,9 +180,9 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
       animate={{
         x: currentPosition.x,
         y: currentPosition.y,
-        opacity: currentLevel === "level1" || role === "moon"
+        opacity: isDimmed ? 0.45 : (currentLevel === "level1" || role === "moon"
           ? (currentLevel === "level2" && isMoon ? (isFocused ? 1 : 0.5) : 1)
-          : 0,
+          : 0),
         scale: tapAnim ? 1.15 : 1
       }}
       whileHover={isMoon ? { scale: 1.06 } : {}}
@@ -177,6 +192,8 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
         scale: { type: "spring", stiffness: 300, damping: 20 }
       }}
       onClick={handleClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       style={{
         position: "absolute",
         cursor: isMoon ? "pointer" : "default",
@@ -283,7 +300,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
             </motion.h3>
             {/* RotatingSubtitle: cycles through recent actions for this moon. */}
             {Array.isArray(node.recentActions) && node.recentActions.length > 0 && (
-              <RotatingSubtitle actions={node.recentActions} delay={subtitleDelay} />
+              <RotatingSubtitle actions={node.recentActions} delay={subtitleDelay} dimmed={isDimmed} />
             )}
           </motion.div>
         </>
@@ -298,7 +315,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0 }: SunMoonN
           justifyContent: "center",
           position: "relative",
           borderStyle: "solid",
-          borderColor: isMoon ? lightenColor(color, 60) : "white",
+          borderColor: isMoon ? hexToRgba(lightenColor(color, 60), 0.68) : "white",
           boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`
         }}
         initial={{

@@ -115,6 +115,7 @@ export const ZoomWorld = () => {
   const { x, y, controls, handleDragEnd, handleWheel } = usePanning({ nodes, currentLevel });
   const setFocus = useZoomStore((s) => s.setPanTarget);
   const [isAnyMoonInDebug, setIsAnyMoonInDebug] = React.useState(false);
+  const [hoveredMoonId, setHoveredMoonId] = React.useState<string | null>(null);
 
   // Keyboard navigation for L2
   const lastTopMoonRef = React.useRef('moon1');
@@ -161,11 +162,6 @@ export const ZoomWorld = () => {
         height: "100vh", // Full viewport height
         overflow: "hidden", // Hide overflow for panning
         position: "relative", // Position context for children
-        background: "black",
-        backgroundImage: 'url(/assets/bg_temporary.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
       }}
       onMouseDown={(e) => {
         // Set a flag to detect drag vs click
@@ -214,6 +210,9 @@ export const ZoomWorld = () => {
                 setIsAnyMoonInDebug(false);
               }
             }}
+            hoveredMoonId={hoveredMoonId}
+            onMouseEnter={() => setHoveredMoonId(node.id)}
+            onMouseLeave={() => setHoveredMoonId(null)}
             data-zoom-moon={node.role === 'moon' ? 'true' : undefined}
           />
         ))}
@@ -223,7 +222,7 @@ export const ZoomWorld = () => {
         position: 'absolute',
         top: '50%',
         left: '50%',
-        transform: 'translate(-50%, calc(-100% - 220px))',
+        transform: 'translate(-50%, calc(-100% - 190px))',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

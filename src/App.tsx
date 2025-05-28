@@ -1,12 +1,16 @@
-import { ZoomWorld } from './components/ZoomWorld/ZoomWorld';
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import OverviewArea from './components/OverviewArea';
+import DetailArea from './components/DetailArea';
+import BackgroundLayer from './components/BackgroundLayer';
 
 function App() {
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
-      <ZoomWorld />
-    </div>
+    <>
+      <BackgroundLayer />
+      <div style={{ width: '100vw', height: '100vh', overflowY: 'auto', overflowX: 'hidden', position: 'relative', zIndex: 1 }}>
+        <OverviewArea />
+        <DetailArea />
+      </div>
+    </>
   );
 }
 
