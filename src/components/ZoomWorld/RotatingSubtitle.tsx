@@ -15,6 +15,7 @@ const FADE_DURATION = 1.0;    // seconds, fade in/out duration
  * Props:
  *   - actions: string[] (array of recent action texts)
  *   - delay?: number (ms, initial delay before the first switch)
+ *   - dimmed?: boolean (whether the subtitle is dimmed)
  *
  * Usage:
  *   <RotatingSubtitle actions={['Action 1', 'Action 2']} delay={500} />
@@ -24,7 +25,8 @@ const FADE_DURATION = 1.0;    // seconds, fade in/out duration
 export const RotatingSubtitle: React.FC<{
   actions: string[];
   delay?: number;
-}> = ({ actions, delay = 0 }) => {
+  dimmed?: boolean;
+}> = ({ actions, delay = 0, dimmed = false }) => {
   const [index, setIndex] = React.useState(0);
   const [visible, setVisible] = React.useState(true);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -53,7 +55,11 @@ export const RotatingSubtitle: React.FC<{
 
   // AnimatePresence handles fade out/in
   return (
-    <div style={{ minHeight: 56, marginTop: 18, padding: '0 64px', width: '80%' }}>
+    <motion.div
+      style={{ minHeight: 56, marginTop: 18, padding: '0 64px', width: '80%' }}
+      animate={{ opacity: dimmed ? 0 : 1 }}
+      transition={{ opacity: { duration: dimmed ? 0.56 : 0.28, ease: 'easeInOut' } }}
+    >
       <AnimatePresence mode="wait">
         {visible && (
           <motion.div
@@ -79,6 +85,6 @@ export const RotatingSubtitle: React.FC<{
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }; 
