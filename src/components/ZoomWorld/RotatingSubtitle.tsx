@@ -58,9 +58,9 @@ export const RotatingSubtitle: React.FC<{
         {visible && (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
             transition={{ duration: FADE_DURATION, ease: 'easeInOut' }}
             style={{
               fontFamily: "'Sohne', sans-serif",
@@ -72,6 +72,7 @@ export const RotatingSubtitle: React.FC<{
               maxWidth: 420,
               margin: '0 auto',
               pointerEvents: 'none',
+              fontStyle: 'italic',
             }}
           >
             {actions[index]}
