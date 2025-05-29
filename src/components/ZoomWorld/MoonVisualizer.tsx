@@ -1,32 +1,27 @@
 /*
-  ZoomWorld.tsx
+  MoonVisualizer.tsx
   -------------------
-  This is the main component for the zoomable, pannable world interface. It renders the sun and moons, manages zoom levels, and wires up all panning and snapping logic via the usePanning hook.
+  This is the main component for the moon visualization interface. It renders the sun and moons, and manages their layout and appearance based on the current mode (overview/detail).
 
   HOW TO USE:
-  - This component is the root of the zoomable world UI. It renders the nodes and zoom controls.
-  - All panning, snapping, and animation logic is handled by the usePanning hook.
-  - To change panning/snapping behavior, edit usePanning.ts.
+  - This component is the root of the moon visualization UI.
+  - All layout and animation logic for the moons is handled here.
 
   WHAT IT HANDLES:
   - Renders all nodes (sun and moons) at their correct positions
-  - Handles zoom level state and passes it to usePanning
-  - Wires up drag and trackpad panning via usePanning
-  - Renders zoom controls
+  - Manages layout for overview and detail modes
+  - Handles transitions between modes
 */
 
 import { motion } from 'framer-motion';
-import { useZoomStore } from './useZoomStore';
 import { SunMoonNode } from './SunMoonNode';
-import { ZoomControls } from './ZoomControls';
-import type { ZoomNode } from '../../types';
-import { usePanning } from './usePanning';
 import React, { useEffect } from 'react';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
+import type { ZoomNode } from '../../types';
 
 // --- Sample data for nodes (sun and moons) ---
 // In a real app, this would come from props or an API
-const nodes: ZoomNode[] = [
+export const nodes: ZoomNode[] = [
   {
     id: "moon1",
     role: "moon",
@@ -105,116 +100,66 @@ const nodes: ZoomNode[] = [
 ];
 
 /**
- * ZoomWorld
- * Main component for the zoomable world UI.
- * Handles rendering, zoom state, and panning/snapping via usePanning.
+ * MoonVisualizer
+ * Main component for the moon visualization UI.
+ * Handles rendering and layout of moons.
  */
-export const ZoomWorld = () => {
-  // --- Get current zoom level from store ---
-  const { currentLevel, focusedMoonId, zoomIn, zoomOut } = useZoomStore();
-  // --- Get panning/snapping logic from custom hook ---
-  const { x, y, controls, handleDragEnd, handleWheel } = usePanning({ nodes, currentLevel });
-  const setFocus = useZoomStore((s) => s.setPanTarget);
-  const [isAnyMoonInDebug, setIsAnyMoonInDebug] = React.useState(false);
+export const MoonVisualizer = () => {
+  const currentLevel = 'level1'; // Kept for positions, but zoom is removed
   const [hoveredMoonId, setHoveredMoonId] = React.useState<string | null>(null);
   const mode = useJourneyModeStore((s) => s.mode);
 
   // Layout logic for detail mode
   const detailMoonX = -420; // X position for the focused moon
-  const dotMoonX = -800; // X position for the dot moons (moved a bit more right)
+  const dotMoonX = -800; // X position for the dot moons
   const detailMoonY = 0; // Centered Y for focused moon
-  const dotSpacing = 40; // Very tight vertical spacing between dots
-  // For now, first moon is focused in detail mode
+  const dotSpacing = 40; // Vertical spacing between dots
+  
+  // Determine focused moon index (e.g., first moon in detail mode)
+  // This could be made dynamic based on scroll or click in the future
   const focusedIdx = mode === 'detail' ? 0 : null;
-
-  // Keyboard navigation for L2
-  const lastTopMoonRef = React.useRef('moon1');
-  useEffect(() => {
-    if (currentLevel !== 'level2') return;
-    // Track last focused top moon
-    if (focusedMoonId === 'moon1' || focusedMoonId === 'moon3') {
-      lastTopMoonRef.current = focusedMoonId;
-    }
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Zoom controls (ignore if in input/textarea)
-      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-      if (e.key === ']') zoomIn();
-      if (e.key === '[') zoomOut();
-      
-      // Skip moon navigation if any moon is in debug mode
-      if (isAnyMoonInDebug) return;
-      
-      let nextId = null;
-      if (focusedMoonId === 'moon1') {
-        if (e.key === 'ArrowRight') nextId = 'moon3';
-        if (e.key === 'ArrowDown') nextId = 'moon2';
-      } else if (focusedMoonId === 'moon3') {
-        if (e.key === 'ArrowLeft') nextId = 'moon1';
-        if (e.key === 'ArrowDown') nextId = 'moon2';
-      } else if (focusedMoonId === 'moon2') {
-        if (e.key === 'ArrowUp') nextId = lastTopMoonRef.current;
-        if (e.key === 'ArrowLeft') nextId = 'moon1';
-        if (e.key === 'ArrowRight') nextId = 'moon3';
-      }
-      if (nextId) {
-        useZoomStore.setState({ focusedMoonId: nextId });
-        setFocus({ x: 0, y: 0 });
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentLevel, focusedMoonId, setFocus, zoomIn, zoomOut, isAnyMoonInDebug]);
 
   return (
     <div 
       style={{ 
-        width: "100vw", // Full viewport width
-        height: "100vh", // Full viewport height
-        overflow: "hidden", // Hide overflow for panning
-        position: "relative", // Position context for children
-        pointerEvents: 'none',
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        position: "relative",
+        pointerEvents: 'none', // Main container doesn't need pointer events
       }}
       onMouseDown={(e) => {
-        // Set a flag to detect drag vs click
-        (window as any)._zoomWorldMouseDown = { x: e.clientX, y: e.clientY };
+        // Flag for drag vs. click detection (if needed for future interactions)
+        (window as any)._moonVisualizerMouseDown = { x: e.clientX, y: e.clientY };
       }}
       onMouseUp={(e) => {
-        // Only handle in level2
-        if (currentLevel !== 'level2') return;
-        // If mouse moved more than a few pixels, treat as drag, not click
-        const down = (window as any)._zoomWorldMouseDown;
-        if (down && (Math.abs(e.clientX - down.x) > 5 || Math.abs(e.clientY - down.y) > 5)) return;
-        // If the click target is inside a moon node, ignore
-        if ((e.target as HTMLElement).closest('[data-zoom-moon]')) return;
-        // Otherwise, zoom out
-        zoomOut();
+        // Handle click outside moons in detail mode (e.g., to return to overview)
+        if (mode !== 'detail') return;
+        const down = (window as any)._moonVisualizerMouseDown;
+        if (down && (Math.abs(e.clientX - down.x) > 5 || Math.abs(e.clientY - down.y) > 5)) return; // Drag
+        if ((e.target as HTMLElement).closest('[data-moon-node]')) return; // Clicked on a moon
+        
+        // TODO: Implement logic to switch back to overview mode if desired
+        // useJourneyModeStore.getState().setMode('overview');
       }}
     >
-      {/* Main panning container. Handles drag and trackpad panning. */}
       <motion.div
-        drag={currentLevel !== "level1"} // Enable drag except at level1
-        dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }} // Large drag bounds
-        animate={controls} // Imperative animation controls (for snapping)
-        onDragEnd={handleDragEnd} // Unified drag end handler
         style={{
           width: "100%",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          position: "relative",
-          x, // Framer Motion x motion value
-          y  // Framer Motion y motion value
+          position: "relative"
         }}
-        onWheel={handleWheel} // Unified trackpad handler
       >
-        {/* Render all nodes (sun and moons) */}
         {nodes.map((node, idx) => {
           let targetX = node.positions[currentLevel].x;
           let targetY = node.positions[currentLevel].y;
           let targetScale = 1;
           let isFocused = false;
           let isDot = false;
+
           if (mode === 'detail') {
             if (focusedIdx !== null && idx === focusedIdx) {
               // Focused moon: large, left column
@@ -222,33 +167,35 @@ export const ZoomWorld = () => {
               targetY = detailMoonY;
               targetScale = 1.18;
               isFocused = true;
-              isDot = false;
             } else {
               // Dot moons: small, stacked vertically
               const dotIdx = focusedIdx !== null && idx < focusedIdx ? idx : idx - 1;
               targetX = dotMoonX;
-              targetY = detailMoonY + (dotIdx - 0.5) * dotSpacing;
+              targetY = detailMoonY + (dotIdx - (nodes.filter(n => n.role === 'moon').length -1) / 2) * dotSpacing;
               targetScale = 0.05;
               isDot = true;
-              isFocused = false;
             }
           }
+          
+          // Ensure SunNode (if any) is not treated as a dot or focusable moon
+          if (node.role === 'sun') {
+            isFocused = false;
+            isDot = false;
+            // Use its L1 position directly, or adjust if needed for overview
+            targetX = node.positions.level1.x;
+            targetY = node.positions.level1.y;
+            targetScale = 1; 
+          }
+
           return (
             <SunMoonNode
               key={node.id}
               node={node}
-              staggerOffset={idx * 3}
-              onDebugChange={(isDebug) => {
-                if (isDebug) {
-                  setIsAnyMoonInDebug(true);
-                } else {
-                  setIsAnyMoonInDebug(false);
-                }
-              }}
+              staggerOffset={idx * 3} // Stagger animation for visual appeal
               hoveredMoonId={hoveredMoonId}
-              onMouseEnter={() => setHoveredMoonId(node.id)}
-              onMouseLeave={() => setHoveredMoonId(null)}
-              data-zoom-moon={node.role === 'moon' ? 'true' : undefined}
+              onMouseEnter={() => node.role === 'moon' && setHoveredMoonId(node.id)}
+              onMouseLeave={() => node.role === 'moon' && setHoveredMoonId(null)}
+              data-moon-node={node.role === 'moon' ? 'true' : undefined} // For event targeting
               mode={mode}
               isFocused={isFocused}
               isDot={isDot}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ZoomWorld } from './ZoomWorld/ZoomWorld';
+import { MoonVisualizer } from './ZoomWorld/MoonVisualizer';
 
 const MoonLayer: React.FC = () => (
   <div
@@ -14,7 +14,7 @@ const MoonLayer: React.FC = () => (
       mixBlendMode: 'screen',
     }}
   >
-    <ZoomWorld />
+    <MoonVisualizer />
   </div>
 );
 

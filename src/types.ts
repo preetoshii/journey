@@ -34,16 +34,4 @@ export interface ZoomNode {
   color: string; // Node color
   progress?: number; // Optional progress value (0-100)
   recentActions?: string[]; // Optional: recent actions for moons
-}
-
-// --- Zustand store state for zoom world ---
-export interface ZoomState {
-  currentLevel: ZoomLevel; // Current zoom level
-  focusedMoonId: string | null; // ID of focused moon (if any)
-  lastFocusedMoonId: string | null; // ID of the last focused moon
-  panTarget: Position | null; // Target position for imperative panning
-  zoomIn: (targetMoonId?: string) => void; // Action: zoom in
-  zoomOut: () => void; // Action: zoom out
-  setLevel: (level: ZoomLevel) => void; // Action: set zoom level
-  setPanTarget: (target: Position | null) => void; // Action: set pan target
 } 

@@ -18,10 +18,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ZoomNode } from '../../types';
-import { useZoomStore } from './useZoomStore';
-import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import React from 'react';
-import { playRandomPentatonicNote } from './soundUtils';
+import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import { ArcProgressBar } from './ArcProgressBar';
 import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
 import { RotatingSubtitle } from './RotatingSubtitle';
@@ -29,7 +27,6 @@ import { RotatingSubtitle } from './RotatingSubtitle';
 // Props for the SunMoonNode component
 interface SunMoonNodeProps {
   node: ZoomNode; // The node to render (sun or moon)
-  onDebugChange?: (isDebug: boolean) => void; // Callback for debug state changes
   staggerOffset?: number; // Optional: stagger animation offset in seconds
   hoveredMoonId?: string | null;
   onMouseEnter?: () => void;
@@ -77,13 +74,10 @@ function hexToRgba(hex: string, alpha: number) {
  * SunMoonNode
  * Renders a single node (sun or moon) with animation and click logic.
  */
-export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: SunMoonNodeProps) => {
-  // --- Get relevant state and actions from the store ---
-  const { currentLevel, zoomIn, setPanTarget, focusedMoonId } = useZoomStore();
-  // --- Destructure node properties ---
-  const { positions, role, title, subtitle, color } = node;
-
+export const SunMoonNode = ({ node, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: SunMoonNodeProps) => {
   // --- Derived state ---
+  const { positions, role, title, subtitle, color } = node;
+  const currentLevel = 'level1';
   const isMoon = role === "moon";
   const currentPosition = {
     x: typeof targetX === 'number' ? targetX : positions[currentLevel].x,
@@ -92,52 +86,40 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
   const scale = typeof targetScale === 'number' ? targetScale : 1;
   const [tapAnim, setTapAnim] = React.useState(false);
   const [bgActive, setBgActive] = React.useState(false);
-  const [wasInLevel1, setWasInLevel1] = React.useState(false);
+  const [wasInLevel1, setWasInLevel1] = React.useState(true);
   const [arcActive, setArcActive] = React.useState(false);
-  const [isDebug, setIsDebug] = React.useState(false);
   
   // Track if we were in level 1
   React.useEffect(() => {
-    if (currentLevel === "level1") {
-      setWasInLevel1(true);
-    } else if (currentLevel === "level2") {
-      setWasInLevel1(false);
-    }
-  }, [currentLevel]);
+    // Only one level now, always setWasInLevel1 true
+    setWasInLevel1(true);
+  }, []);
 
   // Effect to handle focus changes
   React.useEffect(() => {
-    if (isFocused && currentLevel === "level2") {
+    if (isFocused) {
       setTapAnim(true);
-      playRandomPentatonicNote();
     }
-  }, [isFocused, currentLevel]);
+  }, [isFocused]);
 
   // Delay activation of animated background after focusing in L2
   React.useEffect(() => {
-    if (currentLevel === "level2" && isMoon && isFocused) {
-      if (wasInLevel1) {
-        // If coming from level 1, delay the background
-        const timeout = setTimeout(() => setBgActive(true), 800);
-        return () => clearTimeout(timeout);
-      } else {
-        // If already in level 2, activate immediately
-        setBgActive(true);
-      }
+    if (isMoon && isFocused) {
+      setBgActive(true);
     } else {
       setBgActive(false);
     }
-  }, [currentLevel, isMoon, isFocused, wasInLevel1]);
+  }, [isMoon, isFocused]);
 
   // Show arc with 0.6s delay on focus in L2
   React.useEffect(() => {
-    if (isMoon && currentLevel === "level2" && isFocused) {
+    if (isMoon && isFocused) {
       const timeout = setTimeout(() => setArcActive(true), 600);
       return () => clearTimeout(timeout);
     } else {
       setArcActive(false);
     }
-  }, [isMoon, currentLevel, isFocused]);
+  }, [isMoon, isFocused]);
 
   /**
    * getScale
@@ -167,13 +149,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
    * - At level2: focuses and pans to the clicked moon
    */
   const handleClick = () => {
-    if (currentLevel === "level1" && isMoon) {
-      zoomIn(node.id);
-    } else if (currentLevel === "level2" && isMoon) {
-      // Set this moon as the focused moon and trigger panning
-      useZoomStore.setState({ focusedMoonId: node.id });
-      setPanTarget({ x: 0, y: 0 });
-    }
+    // No zoom or pan logic needed anymore
   };
 
   // Stagger the subtitle rotation for each moon by id (0ms, 200ms, 400ms)
@@ -189,9 +165,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
       animate={{
         x: currentPosition.x,
         y: currentPosition.y,
-        opacity: isDimmed ? 0.45 : (currentLevel === "level1" || role === "moon"
-          ? (currentLevel === "level2" && isMoon ? (isFocused === true ? 1 : 0.5) : 1)
-          : 0),
+        opacity: isDimmed ? 0.45 : 1,
         scale: tapAnim ? 1.15 : scale
       }}
       whileHover={isMoon && !Boolean(isDot) ? { scale: 1.06 } : {}}
@@ -242,7 +216,6 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
               active={true}
               animationDuration={1.3}
               containerSize={CIRCLE_L1_SIZE + 40}
-              onDebugChange={onDebugChange}
             />
           </motion.div>
 
@@ -339,7 +312,7 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
               {title}
             </motion.h3>
             {Array.isArray(node.recentActions) && node.recentActions.length > 0 && (
-              <RotatingSubtitle actions={node.recentActions} delay={subtitleDelay} dimmed={isDimmed} />
+              <RotatingSubtitle actions={node.recentActions} delay={subtitleDelay} dimmed={Boolean(isDimmed)} />
             )}
           </motion.div>
         </motion.div>

@@ -11,7 +11,6 @@ interface ArcProgressBarProps {
   active: boolean;
   animationDuration?: number; // seconds
   containerSize?: number; // SVG size (default 750)
-  onDebugChange?: (isDebug: boolean) => void; // Callback for debug state changes
 }
 
 // Helper: Convert polar to cartesian
@@ -43,17 +42,9 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   active,
   animationDuration = 1.3,
   containerSize = 750,
-  onDebugChange,
 }) => {
   const center = containerSize / 2;
   const startAngle = Math.PI / 2; // 90deg, bottom
-
-  // Debug state for progress
-  const [debug, setDebug] = React.useState(false);
-  const [debugProgress, setDebugProgress] = React.useState(progress);
-  React.useEffect(() => {
-    if (!debug) setDebugProgress(progress);
-  }, [progress, debug]);
 
   // Track if this is the first time becoming active
   const [isFirstActivation, setIsFirstActivation] = React.useState(true);
@@ -66,24 +57,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     }
   }, [active]);
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'd' || e.key === 'D') {
-        const newDebug = !debug;
-        setDebug(newDebug);
-        onDebugChange?.(newDebug);
-      }
-      if (debug) {
-        if (e.key === 'ArrowRight') setDebugProgress((p) => Math.min(100, p + 20));
-        if (e.key === 'ArrowLeft') setDebugProgress((p) => Math.max(0, p - 20));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [debug, onDebugChange]);
-
-  // Use debug progress if in debug mode
-  const effectiveProgress = debug ? debugProgress : progress;
+  const effectiveProgress = progress;
 
   // Animate progress with Framer Motion
   const progressMotion = useMotionValue(isFirstActivation ? 0 : effectiveProgress);
@@ -150,7 +124,6 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         zIndex: 2,
-        border: debug ? '1px solid red' : undefined,
       }}
     >
       {/* Glow */}
