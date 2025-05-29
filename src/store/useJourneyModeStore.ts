@@ -11,6 +11,8 @@ interface JourneyModeState {
   setScrollContainer: (container: HTMLDivElement | null) => void;
   isAutoScrolling: boolean; // True if programmatic scroll is in progress
   setIsAutoScrolling: (isScrolling: boolean) => void;
+  activeCardKey: string | null; // Key of the currently focused card (e.g., 'moon1-progress')
+  setActiveCardKey: (key: string | null) => void;
 }
 
 export const useJourneyModeStore = create<JourneyModeState>((set) => ({
@@ -24,4 +26,6 @@ export const useJourneyModeStore = create<JourneyModeState>((set) => ({
   setScrollContainer: (container) => set(() => ({ scrollContainer: container })),
   isAutoScrolling: false, // Default to false
   setIsAutoScrolling: (isScrolling) => set(() => ({ isAutoScrolling: isScrolling })),
+  activeCardKey: null, // Default to no card active
+  setActiveCardKey: (key) => set(() => ({ activeCardKey: key }))
 })); 

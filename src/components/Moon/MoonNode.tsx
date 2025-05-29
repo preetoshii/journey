@@ -167,9 +167,9 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
       }}
       whileHover={!Boolean(isDot) ? { scale: scale * 1.06 } : {}}
       transition={{
-        x: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
-        opacity: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
-        scale: { type: "spring", stiffness: 300, damping: 20 }
+        x: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
+        opacity: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
+        scale: { type: "spring", stiffness: 240, damping: 24 }
       }}
       onClick={handleClick}
       onMouseEnter={onMouseEnter}

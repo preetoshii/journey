@@ -7,11 +7,8 @@ import { useJourneyModeStore } from './store/useJourneyModeStore';
 
 function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [pastThreshold, setPastThreshold] = useState(false);
-  const { 
-    mode, 
+  const {
     setMode, 
-    focusedMoonIndex, 
     setFocusedMoonIndex, 
     isDebugMode, 
     toggleDebugMode,
@@ -19,35 +16,33 @@ function App() {
     isAutoScrolling
   } = useJourneyModeStore();
 
-  // Effect to set scroll container in store and handle scroll events
   useEffect(() => {
     if (scrollContainerRef.current) {
       setScrollContainer(scrollContainerRef.current);
     }
+
     const handleScroll = () => {
-      if (!scrollContainerRef.current) return;
+      if (!scrollContainerRef.current || isAutoScrolling) return;
+
       const scrollTop = scrollContainerRef.current.scrollTop;
-      
-      if (scrollTop > 0 && !pastThreshold) {
-        setPastThreshold(true);
-        setMode('detail'); // Always set mode to detail
-        if (!isDebugMode && !isAutoScrolling) { // Only set focusedMoonIndex if not debugging and not auto-scrolling
+      const currentMode = useJourneyModeStore.getState().mode;
+      const overviewAreaHeight = window.innerHeight; // Boundary for mode switch
+
+      if (scrollTop >= overviewAreaHeight && currentMode === 'overview') {
+        setMode('detail');
+        if (!isDebugMode) {
           setFocusedMoonIndex(1);
-          console.log('Scroll: Detail mode, Auto-Focus Moon 1');
-        } else if (isAutoScrolling) {
-          console.log('Scroll: Detail mode, Auto-scroll in progress, focus maintained');
+          console.log('Scroll: Switched to Detail mode (boundary crossed), Auto-Focus Moon 1');
         }
-      } else if (scrollTop === 0 && pastThreshold) {
-        setPastThreshold(false);
-        setMode('overview'); // Always set mode to overview
-        if (!isDebugMode && !isAutoScrolling) { // Only set focusedMoonIndex if not debugging and not auto-scrolling
+      } else if (scrollTop < overviewAreaHeight && currentMode === 'detail') {
+        setMode('overview');
+        if (!isDebugMode) {
           setFocusedMoonIndex(0);
-          console.log('Scroll: Overview mode, Auto-Focus Moon 0');
-        } else if (isAutoScrolling) {
-          console.log('Scroll: Overview mode, Auto-scroll in progress, focus maintained (though should be at target)');
+          console.log('Scroll: Switched to Overview mode (boundary crossed), Auto-Focus Moon 0');
         }
       }
     };
+
     const container = scrollContainerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
@@ -58,8 +53,7 @@ function App() {
       }
       setScrollContainer(null); 
     };
-    // Make sure isAutoScrolling is in dependency array
-  }, [pastThreshold, setMode, setFocusedMoonIndex, isDebugMode, setScrollContainer, isAutoScrolling]);
+  }, [setMode, setFocusedMoonIndex, isDebugMode, isAutoScrolling, setScrollContainer]);
 
   // Debug mode keyboard listener effect
   useEffect(() => {
@@ -101,7 +95,6 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-    // Add all dependencies from store and state used in the effect
   }, [isDebugMode, toggleDebugMode, setFocusedMoonIndex, setMode]);
 
   return (
@@ -110,11 +103,19 @@ function App() {
       <MoonLayer />
       {/* Visual indicator for current mode */}
       <div style={{ position: 'fixed', top: 12, left: 12, zIndex: 10000, background: 'rgba(30,30,30,0.7)', color: 'white', padding: '6px 18px', borderRadius: 8, fontSize: 16, fontFamily: 'Sohne, sans-serif', letterSpacing: '0.08em', pointerEvents: 'none' }}>
-        MODE: {mode.toUpperCase()}{isDebugMode ? ' (DEBUG)' : ''}
+        MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}{isDebugMode ? ' (DEBUG)' : ''}
       </div>
       <div
         ref={scrollContainerRef}
-        style={{ width: '100vw', height: '100vh', overflowY: 'auto', overflowX: 'hidden', position: 'relative', zIndex: 1 }}
+        style={{
+          width: '100vw', 
+          height: '100vh', 
+          overflowY: 'auto', 
+          overflowX: 'hidden', 
+          position: 'relative', 
+          zIndex: 1,
+          scrollSnapType: 'y mandatory'
+        }}
       >
         <OverviewArea />
         <DetailArea />

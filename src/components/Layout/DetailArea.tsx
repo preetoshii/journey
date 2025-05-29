@@ -34,58 +34,85 @@
     Moon Focus Column visualization.
   - Styling is basic and likely intended for further refinement.
 */
-import React, { useEffect, useRef, createRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import { detailScreenTypes } from './detailScreenTypes';
-import { nodes as rawNodes } from '../Moon/MoonVisualizer'; // Renamed to avoid conflict with component name
+import { nodes as rawNodes } from '../Moon/MoonVisualizer';
 import type { ZoomNode } from '../../types';
 
 const moonNodes = rawNodes.filter((g: ZoomNode) => g.role === 'moon');
 
 const DetailArea: React.FC = () => {
-  const { mode, setFocusedMoonIndex, isDebugMode, isAutoScrolling } = useJourneyModeStore();
-  const goalSectionRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
+  const { 
+    mode, 
+    setFocusedMoonIndex, 
+    isDebugMode, 
+    isAutoScrolling,
+    activeCardKey,
+    setActiveCardKey
+  } = useJourneyModeStore();
+
+  const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
   useEffect(() => {
-    goalSectionRefs.current = Array(moonNodes.length).fill(null).map((_, i) => goalSectionRefs.current[i] || createRef<HTMLDivElement>());
-  }, []);
-
-  useEffect(() => {
-    if (mode !== 'detail' || isDebugMode || isAutoScrolling) {
+    if (mode !== 'detail' || isAutoScrolling || isDebugMode) {
+      if (mode === 'overview' && activeCardKey !== null) {
+        setActiveCardKey(null);
+      }
       return;
     }
 
     const observerOptions = {
       root: null,
       rootMargin: '-40% 0px -40% 0px',
-      threshold: 0.1,
+      threshold: 0.5,
     };
+
+    let currentMostVisibleCardKey: string | null = null;
+    let maxRatio = 0;
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const targetId = entry.target.id;
-          const goalIndex = moonNodes.findIndex(goal => goal.id === targetId);
-          if (goalIndex !== -1) {
-            setFocusedMoonIndex(goalIndex + 1);
-            console.log(`Intersection: Focused moon ${goalIndex + 1} (${targetId})`);
-          }
+        const cardKey = entry.target.getAttribute('data-card-key');
+        if (!cardKey) return;
+
+        if (entry.isIntersecting && entry.intersectionRatio >= maxRatio) {
+          maxRatio = entry.intersectionRatio;
+          currentMostVisibleCardKey = cardKey;
         }
       });
+
+      if (currentMostVisibleCardKey && currentMostVisibleCardKey !== activeCardKey) {
+        setActiveCardKey(currentMostVisibleCardKey);
+        
+        const moonId = currentMostVisibleCardKey.split('-')[0];
+        const goalIndex = moonNodes.findIndex(goal => goal.id === moonId);
+        if (goalIndex !== -1 && useJourneyModeStore.getState().focusedMoonIndex !== goalIndex + 1) {
+          setFocusedMoonIndex(goalIndex + 1);
+          console.log(`Card Intersection: Focused moon ${goalIndex + 1} (${moonId}) via card ${currentMostVisibleCardKey}`);
+        }
+      }
+      maxRatio = 0; 
     };
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
 
-    goalSectionRefs.current.forEach(refObject => {
-      if (refObject && refObject.current) {
-        observer.observe(refObject.current);
+    cardRefs.current.forEach(cardElement => {
+      if (cardElement) {
+        observer.observe(cardElement);
       }
     });
 
     return () => {
       observer.disconnect();
     };
-  }, [mode, isDebugMode, setFocusedMoonIndex, isAutoScrolling]);
+  }, [mode, isDebugMode, isAutoScrolling, setActiveCardKey, setFocusedMoonIndex, activeCardKey]);
+
+  useEffect(() => {
+    if (mode === 'overview' && activeCardKey !== null) {
+      setActiveCardKey(null);
+    }
+  }, [mode, activeCardKey, setActiveCardKey]);
 
   return (
     <div
@@ -102,23 +129,69 @@ const DetailArea: React.FC = () => {
       {/* Left half (reserved for moon focus column) */}
       <div style={{ width: '50vw', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
       {/* Right half (content column) */}
-      <div style={{ width: '50vw', height: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 40 }}>
+      <div style={{ 
+        width: '50vw', 
+        height: '100%', 
+        display: 'flex', 
+        alignItems: 'flex-start', 
+        justifyContent: 'flex-start',
+        paddingTop: 40, 
+        paddingLeft: '5vw'
+      }}>
         <div style={{ width: 600, display: 'flex', flexDirection: 'column', gap: 64 }}>
-          {moonNodes.map((goal: ZoomNode, index: number) => (
+          {moonNodes.map((goal: ZoomNode, goalIndex: number) => (
             <div 
               key={goal.id} 
               id={goal.id}
-              ref={goalSectionRefs.current[index]}
-              style={{ marginBottom: '20vh' }}
+              style={{ 
+                marginBottom: '50vh'
+              }}
             >
-              <div style={{ fontSize: 26, fontWeight: 700, color: '#fff', marginBottom: 18, letterSpacing: '0.03em' }}>{goal.title}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-                {detailScreenTypes.map((screen) => (
-                  <div key={screen.key} style={{ border: '1px solid #333', borderRadius: 16, background: '#181a1e', marginBottom: 24 }}>
-                    <div style={{ padding: '16px 32px', fontSize: 22, fontWeight: 600, color: '#aef', borderBottom: '1px solid #222' }}>{screen.label}</div>
-                    <screen.component goal={goal} />
-                  </div>
-                ))}
+                {detailScreenTypes.map((screen) => {
+                  const cardKey = `${goal.id}-${screen.key}`;
+                  const isCardActive = activeCardKey === cardKey;
+                  
+                  return (
+                    <div 
+                      key={cardKey}
+                      data-card-key={cardKey}
+                      ref={el => { cardRefs.current.set(cardKey, el); }}
+                      style={{ 
+                        background: 'transparent',
+                        border: '1px solid #333333',
+                        borderRadius: 24,
+                        paddingTop: '40px',
+                        paddingRight: '40px',
+                        paddingBottom: '40px',
+                        paddingLeft: '60px',
+                        marginBottom: 24,
+                        textAlign: 'left',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        justifyContent: 'center',
+                        minHeight: 300,
+                        scrollSnapAlign: 'center',
+                        opacity: isCardActive ? 1 : 0.15,
+                        transition: 'opacity 0.3s ease-in-out'
+                      }}
+                    >
+                      <div 
+                        style={{ 
+                          fontFamily: "'Ivar Display', serif",
+                          fontSize: '36px', 
+                          fontWeight: 400,  
+                          color: '#FFFFFF', 
+                          marginBottom: '24px'
+                        }}
+                      >
+                        {screen.label}
+                      </div>
+                      <screen.component goal={goal} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

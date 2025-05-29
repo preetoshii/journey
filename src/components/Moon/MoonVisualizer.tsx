@@ -179,7 +179,7 @@ export const MoonVisualizer = () => {
           if (node.role === 'sun') {
             targetX = node.positions.level1.x;
             targetY = node.positions.level1.y;
-            targetScale = 1;
+            targetScale = 1; 
             isFocused = false;
             isDot = false;
           } else if (node.role === 'moon') {

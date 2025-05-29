@@ -48,6 +48,7 @@ const OverviewArea: React.FC = () => {
         position: 'relative',
         zIndex: 1,
         pointerEvents: 'auto',
+        scrollSnapAlign: 'start'
       }}
     >
       <motion.div
