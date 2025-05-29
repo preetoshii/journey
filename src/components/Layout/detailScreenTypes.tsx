@@ -1,13 +1,15 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+// Removed: import { motion } from 'framer-motion'; // No longer needed here if layout is handled by DetailArea
 import type { ZoomNode } from '../../types';
+// Removed: import { useRef, useEffect } from 'react'; // Not used in this version of DetailScreenMoments
+import styles from './detailScreenTypes.module.css';
 
 // Progress Screen: Shows progress percentage and transformation phase
 export const DetailScreenProgress: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
-  const recentActions = goal.recentActions || [];
-  const discoveryActions = recentActions.filter((a: string) => a.toLowerCase().includes('uncovered') || a.toLowerCase().includes('realized') || a.toLowerCase().includes('noticed'));
-  const practiceActions = recentActions.filter((a: string) => a.toLowerCase().includes('practiced') || a.toLowerCase().includes('tried') || a.toLowerCase().includes('set'));
-  const actionActions = recentActions.filter((a: string) => a.toLowerCase().includes('volunteered') || a.toLowerCase().includes('put') || a.toLowerCase().includes('held'));
+  const recentActionsTyped = goal.recentActions || [];
+  const discoveryActions = recentActionsTyped.filter((a) => (a as any).text.toLowerCase().includes('uncovered') || (a as any).text.toLowerCase().includes('realized') || (a as any).text.toLowerCase().includes('noticed'));
+  const practiceActions = recentActionsTyped.filter((a) => (a as any).text.toLowerCase().includes('practiced') || (a as any).text.toLowerCase().includes('tried') || (a as any).text.toLowerCase().includes('set'));
+  const actionActions = recentActionsTyped.filter((a) => (a as any).text.toLowerCase().includes('volunteered') || (a as any).text.toLowerCase().includes('put') || (a as any).text.toLowerCase().includes('held'));
 
   // Determine current phase based on action distribution
   const getCurrentPhase = () => {
@@ -36,24 +38,107 @@ export const DetailScreenProgress: React.FC<{ goal: ZoomNode }> = ({ goal }) => 
 
 // Growth Screen: Shows the journey from discovery to action
 export const DetailScreenGrowth: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
-  // const recentActions = goal.recentActions || [];
-  // const discoveryActions = recentActions.filter(a => a.toLowerCase().includes('uncovered') || a.toLowerCase().includes('realized') || a.toLowerCase().includes('noticed'));
-  // const practiceActions = recentActions.filter(a => a.toLowerCase().includes('practiced') || a.toLowerCase().includes('tried') || a.toLowerCase().includes('set'));
-  // const actionActions = recentActions.filter(a => a.toLowerCase().includes('volunteered') || a.toLowerCase().includes('put') || a.toLowerCase().includes('held'));
+  const [filter, setFilter] = useState<'last month' | 'last 6 months' | 'all time'>('last month');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // TEMPORARILY USING SUBTITLE FOR GROWTH - AWAITING USER FEEDBACK
+  React.useEffect(() => {
+    if (!dropdownOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        // Check if the click was on the toggle button itself
+        // This prevents the dropdown from closing if the toggle button is clicked again
+        // The toggle button's own onClick will handle opening/closing.
+        const toggleButton = dropdownRef.current.previousSibling; // Assuming the toggle span is the direct previous sibling
+        if (toggleButton && (toggleButton as HTMLElement).contains(event.target as Node)) {
+          return;
+        }
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
+
+  const narrative = goal.growthNarrative?.[filter] || goal.subtitle;
   return (
-    <p style={{
-      fontFamily: "'Sohne Buch', sans-serif", // Assuming 'Sohne Buch'
-      fontSize: '18px',
-      color: 'rgba(255, 255, 255, 0.8)',
-      lineHeight: 1.8,
-      margin: 0, // Remove default paragraph margin
-      maxWidth: '80%', // Prevent text from becoming too wide
-    }}>
-      {/* Placeholder: Using goal.subtitle until data strategy for growth narrative is confirmed */}
-      {goal.subtitle} 
-    </p>
+    <div style={{ width: '100%' }}>
+      <p style={{
+        fontFamily: "'Sohne Buch', sans-serif",
+        fontSize: '18px',
+        color: 'rgba(255, 255, 255, 0.8)',
+        lineHeight: 1.8,
+        margin: 0,
+        maxWidth: '80%',
+      }}>
+        {narrative}
+      </p>
+      <div style={{ height: 32 }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 0, marginBottom: 0, minHeight: 32, position: 'relative' }}>
+        {/* Placeholder icon: simple upward arrow bar chart */}
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 17V11M8 17V7M13 17V4M18 17V14" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+        <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 18, color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          Since
+          <span
+            style={{
+              borderBottom: '2px solid rgba(255,255,255,0.7)',
+              cursor: 'pointer',
+              marginLeft: 6,
+              paddingBottom: 1,
+              color: '#fff',
+              fontWeight: 500,
+              position: 'relative',
+              userSelect: 'none',
+            }}
+            onClick={() => setDropdownOpen((v) => !v)}
+          >
+            {filter}
+            <svg style={{ marginLeft: 6, verticalAlign: 'middle' }} width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 2L6 6L10 2" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {dropdownOpen && (
+              <div ref={dropdownRef} style={{
+                position: 'absolute',
+                left: 0,
+                top: 28,
+                background: '#181818',
+                border: '1px solid #333',
+                borderRadius: 8,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+                zIndex: 10,
+                minWidth: 140,
+                padding: '6px 0',
+              }}>
+                {['last month', 'last 6 months', 'all time'].map(option => (
+                  <div
+                    key={option}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilter(option as any);
+                      setDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: '8px 18px',
+                      fontFamily: "'Sohne Buch', sans-serif",
+                      fontSize: 16,
+                      color: option === filter ? '#fff' : 'rgba(255,255,255,0.7)',
+                      background: option === filter ? '#222' : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s',
+                      textTransform: 'lowercase',
+                    }}
+                  >
+                    {option}
+                  </div>
+                ))}
+              </div>
+            )}
+          </span>
+        </span>
+      </div>
+    </div>
   );
 };
 
@@ -75,28 +160,85 @@ export const DetailScreenConnection: React.FC<{ goal: ZoomNode }> = ({ goal }) =
 
 // Moments Screen: Shows key moments and achievements
 export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
-  const recentActions = goal.recentActions || [];
+  const actions = goal.recentActions || [];
+  const [showAll, setShowAll] = useState(false);
 
-  let momentsText = "Key steps on your journey include: " + recentActions.join(". ");
-  // Add a period at the end if there are actions and the joined string doesn't end with one.
-  if (recentActions.length > 0 && !momentsText.endsWith('.')) {
-    momentsText += '.';
+  if (actions.length === 0) {
+    return (
+      <p style={{
+        fontFamily: "'Sohne Buch', sans-serif", 
+        fontSize: '18px',
+        color: 'rgba(255, 255, 255, 0.8)',
+        lineHeight: 1.8,
+        margin: 0,
+        maxWidth: '80%',
+      }}>
+        No specific steps recorded for this goal yet.
+      </p>
+    );
   }
-  if (recentActions.length === 0) {
-    momentsText = "No specific moments recorded for this goal yet."
-  }
+
+  const actionsToShow = showAll ? actions : actions.slice(0, 4);
 
   return (
-    <p style={{
-      fontFamily: "'Sohne Buch', sans-serif", 
-      fontSize: '18px',
-      color: 'rgba(255, 255, 255, 0.8)',
-      lineHeight: 1.8,
-      margin: 0,
-      maxWidth: '80%',
-    }}>
-      {momentsText}
-    </p>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {actionsToShow.map((action, index) => (
+        <div
+          key={index}
+          className={styles['step-subcard']}
+          style={{
+            border: '1.5px solid #444',
+            borderRadius: 24,
+            padding: '32px 36px',
+            minHeight: 90,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            marginBottom: 0,
+            transform: `rotate(${index % 2 === 0 ? -1 : 1}deg)`,
+            transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
+          <span style={{
+            fontFamily: "'Sohne Buch', sans-serif",
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 18,
+            color: 'rgba(255,255,255,0.45)',
+            marginBottom: 5,
+            letterSpacing: 0.2,
+          }}>{action.date}</span>
+          <span style={{
+            fontFamily: "'Sohne Buch', sans-serif",
+            fontSize: 20,
+            color: 'rgba(255,255,255,0.92)',
+            lineHeight: 1.7,
+            fontWeight: 400,
+            margin: 0,
+            textAlign: 'left',
+          }}>{action.text}</span>
+        </div>
+      ))}
+      {actions.length > 4 && !showAll && (
+        <button
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#A3B6FF',
+            fontFamily: "'Sohne Buch', sans-serif",
+            fontSize: 18,
+            margin: '10px auto 0 auto',
+            cursor: 'pointer',
+            textDecoration: 'none',
+            letterSpacing: 0.1,
+            display: 'block',
+          }}
+          onClick={() => setShowAll(true)}
+        >
+          SHOW MORE
+        </button>
+      )}
+    </div>
   );
 };
 
@@ -109,12 +251,12 @@ export const detailScreenTypes = [
   },
   {
     key: 'growth',
-    label: 'Growth',
+    label: "How you've grown",
     component: DetailScreenGrowth,
   },
   {
     key: 'moments',
-    label: 'Moments',
+    label: "Steps you've taken",
     component: DetailScreenMoments,
   },
 ]; 

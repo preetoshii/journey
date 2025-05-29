@@ -39,6 +39,7 @@ import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import { detailScreenTypes } from './detailScreenTypes';
 import { nodes as rawNodes } from '../Moon/MoonVisualizer';
 import type { ZoomNode } from '../../types';
+import { motion } from 'framer-motion';
 
 const moonNodes = rawNodes.filter((g: ZoomNode) => g.role === 'moon');
 
@@ -49,7 +50,9 @@ const DetailArea: React.FC = () => {
     isDebugMode, 
     isAutoScrolling,
     activeCardKey,
-    setActiveCardKey
+    setActiveCardKey,
+    setIsAutoScrolling,
+    isClickToCenterEnabled
   } = useJourneyModeStore();
 
   const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -77,8 +80,10 @@ const DetailArea: React.FC = () => {
         if (!cardKey) return;
 
         if (entry.isIntersecting && entry.intersectionRatio >= maxRatio) {
-          maxRatio = entry.intersectionRatio;
-          currentMostVisibleCardKey = cardKey;
+          if (entry.intersectionRatio > maxRatio || (entry.intersectionRatio === maxRatio && cardKey !== activeCardKey)) {
+            maxRatio = entry.intersectionRatio;
+            currentMostVisibleCardKey = cardKey;
+          }
         }
       });
 
@@ -113,6 +118,28 @@ const DetailArea: React.FC = () => {
       setActiveCardKey(null);
     }
   }, [mode, activeCardKey, setActiveCardKey]);
+
+  const handleCardClick = (cardKey: string) => {
+    const cardElement = cardRefs.current.get(cardKey);
+    if (cardElement) {
+      setIsAutoScrolling(true);
+      setActiveCardKey(cardKey);
+
+      const moonId = cardKey.split('-')[0];
+      const goalIndex = moonNodes.findIndex(goal => goal.id === moonId);
+      if (goalIndex !== -1) {
+        setFocusedMoonIndex(goalIndex + 1);
+      }
+      
+      if (isClickToCenterEnabled) {
+        cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      
+      setTimeout(() => {
+        setIsAutoScrolling(false);
+      }, 700);
+    }
+  };
 
   return (
     <div
@@ -153,17 +180,19 @@ const DetailArea: React.FC = () => {
                   const isCardActive = activeCardKey === cardKey;
                   
                   return (
-                    <div 
+                    <motion.div
+                      layout
                       key={cardKey}
                       data-card-key={cardKey}
                       ref={el => { cardRefs.current.set(cardKey, el); }}
+                      onClick={() => handleCardClick(cardKey)}
                       style={{ 
                         background: 'transparent',
-                        border: '1px solid #333333',
+                        border: screen.key === 'moments' ? 'none' : '1px solid #333333',
                         borderRadius: 24,
-                        paddingTop: '40px',
+                        paddingTop: '52px',
                         paddingRight: '40px',
-                        paddingBottom: '40px',
+                        paddingBottom: '52px',
                         paddingLeft: '60px',
                         marginBottom: 24,
                         textAlign: 'left',
@@ -174,7 +203,8 @@ const DetailArea: React.FC = () => {
                         minHeight: 300,
                         scrollSnapAlign: 'center',
                         opacity: isCardActive ? 1 : 0.15,
-                        transition: 'opacity 0.3s ease-in-out'
+                        transition: 'opacity 0.3s ease-in-out',
+                        cursor: 'pointer'
                       }}
                     >
                       <div 
@@ -189,7 +219,7 @@ const DetailArea: React.FC = () => {
                         {screen.label}
                       </div>
                       <screen.component goal={goal} />
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>

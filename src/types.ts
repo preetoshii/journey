@@ -33,5 +33,11 @@ export interface ZoomNode {
   positions: Record<ZoomLevel, Position>; // Position for each zoom level
   color: string; // Node color
   progress?: number; // Optional progress value (0-100)
-  recentActions?: string[]; // Optional: recent actions for moons
+  recentActions?: { date: string; text: string; }[]; // Updated structure
+  growthNarrative?: {
+    'last month'?: string;
+    'last 6 months'?: string;
+    'all time'?: string;
+    [key: string]: string | undefined;
+  };
 } 

@@ -15,6 +15,8 @@ interface JourneyModeState {
   setActiveCardKey: (key: string | null) => void;
   isScrollSnapEnabled: boolean; // To enable/disable scroll snapping
   toggleScrollSnap: () => void;
+  isClickToCenterEnabled: boolean; // To enable/disable click-to-center
+  toggleClickToCenter: () => void;
 }
 
 export const useJourneyModeStore = create<JourneyModeState>((set) => ({
@@ -31,5 +33,7 @@ export const useJourneyModeStore = create<JourneyModeState>((set) => ({
   activeCardKey: null, // Default to no card active
   setActiveCardKey: (key) => set(() => ({ activeCardKey: key })),
   isScrollSnapEnabled: false, // Default to false (snap scrolling is off)
-  toggleScrollSnap: () => set((state) => ({ isScrollSnapEnabled: !state.isScrollSnapEnabled }))
+  toggleScrollSnap: () => set((state) => ({ isScrollSnapEnabled: !state.isScrollSnapEnabled })),
+  isClickToCenterEnabled: false, // Default to false
+  toggleClickToCenter: () => set((state) => ({ isClickToCenterEnabled: !state.isClickToCenterEnabled }))
 })); 

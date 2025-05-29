@@ -36,17 +36,19 @@ export const nodes: ZoomNode[] = [
     },
     progress: 50,
     recentActions: [
-      // Discovery
-      "You uncovered why you hesitate to take the lead in group settings.",
-      "You realized your fear of being judged holds you back from speaking up.",
-      "You noticed you defer decisions to avoid conflict.",
-      // Practice
-      "You roleplayed leading a tough conversation with your coach.",
-      "You practiced giving clear direction in a mock scenario.",
-      "You wrote down your leadership values and shared them with a peer.",
-      // Action
-      "You volunteered to present at the all-hands.",
-    ]
+      { date: "04/14/25", text: "You uncovered why you hesitate to take the lead in group settings." },
+      { date: "04/12/25", text: "You realized your fear of being judged holds you back from speaking up." },
+      { date: "04/10/25", text: "You noticed you defer decisions to avoid conflict." },
+      { date: "04/08/25", text: "You roleplayed leading a tough conversation with your coach." },
+      { date: "04/05/25", text: "You practiced giving clear direction in a mock scenario." },
+      { date: "04/02/25", text: "You wrote down your leadership values and shared them with a peer." },
+      { date: "03/30/25", text: "You volunteered to present at the all-hands." },
+    ],
+    growthNarrative: {
+      'last month': "A month ago, you would operate more with fear, but now you've learned to sit with that fear and not react as strongly to it.",
+      'last 6 months': "Six months ago, you were hesitant to take on leadership roles, but now you step up with more confidence and inspire others.",
+      'all time': "Since you began this journey, you've transformed from someone who doubted their leadership abilities to someone who leads with authenticity and courage."
+    }
   },
   {
     id: "moon2",
@@ -61,17 +63,19 @@ export const nodes: ZoomNode[] = [
     },
     progress: 75,
     recentActions: [
-      // Discovery
-      "You noticed your biggest distraction trigger is checking your phone after meetings.",
-      "You tracked your attention and found afternoons are your least focused.",
-      "You realized you multitask most when feeling anxious.",
-      // Practice
-      "You practiced a 10-minute daily digital detox.",
-      "You set a timer for focused work and reflected on the results.",
-      "You tried mindful breathing when you felt the urge to check your phone.",
-      // Action
-      "You put your phone away during dinner.",
-    ]
+      { date: "04/16/25", text: "You noticed your biggest distraction trigger is checking your phone after meetings." },
+      { date: "04/13/25", text: "You tracked your attention and found afternoons are your least focused." },
+      { date: "04/11/25", text: "You realized you multitask most when feeling anxious." },
+      { date: "04/09/25", text: "You practiced a 10-minute daily digital detox." },
+      { date: "04/06/25", text: "You set a timer for focused work and reflected on the results." },
+      { date: "04/03/25", text: "You tried mindful breathing when you felt the urge to check your phone." },
+      { date: "03/31/25", text: "You put your phone away during dinner." },
+    ],
+    growthNarrative: {
+      'last month': "A month ago, you struggled to unplug during family time, but now you've created focused blocks and enjoyed more present moments.",
+      'last 6 months': "Six months ago, distractions constantly pulled you away from what mattered. Now, you've built habits to reclaim your focus.",
+      'all time': "Since starting this journey, you've gone from feeling scattered to being able to intentionally direct your attention and be present."
+    }
   },
   {
     id: "moon3",
@@ -86,17 +90,19 @@ export const nodes: ZoomNode[] = [
     },
     progress: 30,
     recentActions: [
-      // Discovery
-      "You uncovered why you struggle with delegation and saying no.",
-      "You noticed you avoid conflict to keep the peace, even when it costs you.",
-      "You realized you feel guilty when prioritizing your own work.",
-      // Practice
-      "You roleplayed saying no to further requests.",
-      "You practiced stating your opinion first in a group discussion.",
-      "You wrote out your boundaries and rehearsed them aloud.",
-      // Action
-      "You held your view in a tough meeting.",
-    ]
+      { date: "04/15/25", text: "You uncovered why you struggle with delegation and saying no." },
+      { date: "04/14/25", text: "You noticed you avoid conflict to keep the peace, even when it costs you." },
+      { date: "04/12/25", text: "You realized you feel guilty when prioritizing your own work." },
+      { date: "04/10/25", text: "You roleplayed saying no to further requests." },
+      { date: "04/07/25", text: "You practiced stating your opinion first in a group discussion." },
+      { date: "04/04/25", text: "You wrote out your boundaries and rehearsed them aloud." },
+      { date: "04/01/25", text: "You held your view in a tough meeting." },
+    ],
+    growthNarrative: {
+      'last month': "A month ago, you would often sidestep disagreement, but now you've started to hold your view in team calls.",
+      'last 6 months': "Six months ago, you rarely voiced your stance. Now, you're more comfortable expressing your perspective, even in tough situations.",
+      'all time': "Since the beginning, you've grown from avoiding conflict to standing firm in your values and boundaries."
+    }
   }
 ];
 

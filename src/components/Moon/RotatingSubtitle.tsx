@@ -36,23 +36,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 const ROTATE_INTERVAL = 13000; // ms, how long each action is shown
 const FADE_DURATION = 1.0;    // seconds, fade in/out duration
 
-/**
- * RotatingSubtitle
- * ----------------
- * Displays a subtitle that cycles through an array of actions (strings),
- * fading out, changing text, and fading in. Designed to be flexible for
- * future data sources (e.g., array of objects, render prop, etc).
- *
- * Props:
- *   - actions: string[] (array of recent action texts)
- *   - delay?: number (ms, initial delay before the first switch)
- *   - dimmed?: boolean (whether the subtitle is dimmed)
- *
- * Usage:
- *   <RotatingSubtitle actions={['Action 1', 'Action 2']} delay={500} />
- *
- * To change timing, edit ROTATE_INTERVAL and FADE_DURATION above.
- */
+
+
+
 export const RotatingSubtitle: React.FC<{
   actions: string[];
   delay?: number;

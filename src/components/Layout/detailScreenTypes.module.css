@@ -1,0 +1,7 @@
+.step-subcard {
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.step-subcard:hover {
+  transform: scale(1.025) !important;
+  background: linear-gradient(120deg, rgba(0,0,0,0.065), rgba(255,255,255,0.065));
+} 

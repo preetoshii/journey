@@ -17,7 +17,9 @@ function App() {
     setScrollContainer,
     isAutoScrolling,
     isScrollSnapEnabled,
-    toggleScrollSnap
+    toggleScrollSnap,
+    isClickToCenterEnabled,
+    toggleClickToCenter
   } = useJourneyModeStore();
 
   useEffect(() => {
@@ -106,6 +108,10 @@ function App() {
             toggleScrollSnap();
             console.log('Debug: Toggled scroll snap', useJourneyModeStore.getState().isScrollSnapEnabled);
             break;
+          case 'c':
+            toggleClickToCenter();
+            console.log('Debug: Toggled click-to-center', useJourneyModeStore.getState().isClickToCenterEnabled);
+            break;
           default:
             break;
         }
@@ -116,7 +122,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [toggleDebugMode, setFocusedMoonIndex, setMode, toggleScrollSnap]);
+  }, [toggleDebugMode, setFocusedMoonIndex, setMode, toggleScrollSnap, toggleClickToCenter]);
 
   return (
     <>
@@ -140,6 +146,7 @@ function App() {
         MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}
         {isDebugMode ? ' (DEBUG)' : ''}
         {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
+        {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}
       </div>
       <div
         ref={scrollContainerRef}
