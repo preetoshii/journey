@@ -2,23 +2,29 @@ import OverviewArea from './components/Layout/OverviewArea';
 import DetailArea from './components/Layout/DetailArea';
 import BackgroundLayer from './components/Layout/BackgroundLayer';
 import MoonLayer from './components/Layout/MoonLayer';
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 
 function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevScrollTopRef = useRef<number>(0); // Ref to store previous scroll top
+
   const {
     setMode, 
     setFocusedMoonIndex, 
     isDebugMode, 
     toggleDebugMode,
     setScrollContainer,
-    isAutoScrolling
+    isAutoScrolling,
+    isScrollSnapEnabled,
+    toggleScrollSnap
   } = useJourneyModeStore();
 
   useEffect(() => {
     if (scrollContainerRef.current) {
       setScrollContainer(scrollContainerRef.current);
+      // Initialize prevScrollTopRef when container is available
+      prevScrollTopRef.current = scrollContainerRef.current.scrollTop;
     }
 
     const handleScroll = () => {
@@ -26,21 +32,32 @@ function App() {
 
       const scrollTop = scrollContainerRef.current.scrollTop;
       const currentMode = useJourneyModeStore.getState().mode;
-      const overviewAreaHeight = window.innerHeight; // Boundary for mode switch
+      
+      const scrollDirection = scrollTop > prevScrollTopRef.current ? 'down' : (scrollTop < prevScrollTopRef.current ? 'up' : 'none');
 
-      if (scrollTop >= overviewAreaHeight && currentMode === 'overview') {
-        setMode('detail');
-        if (!isDebugMode) {
-          setFocusedMoonIndex(1);
-          console.log('Scroll: Switched to Detail mode (boundary crossed), Auto-Focus Moon 1');
+      // Thresholds for switching remain sensitive as per user request
+      const switchToDetailThreshold = 1; // Effectively scrollTop > 0
+      const switchToOverviewThreshold = window.innerHeight - 1; // Effectively scrollTop < window.innerHeight
+
+      if (scrollDirection === 'down') {
+        if (currentMode === 'overview' && scrollTop >= switchToDetailThreshold) {
+          setMode('detail');
+          if (!isDebugMode) {
+            setFocusedMoonIndex(1);
+          }
+          console.log(`Scroll DOWN: Switched to Detail mode (scrollTop: ${scrollTop})`);
         }
-      } else if (scrollTop < overviewAreaHeight && currentMode === 'detail') {
-        setMode('overview');
-        if (!isDebugMode) {
-          setFocusedMoonIndex(0);
-          console.log('Scroll: Switched to Overview mode (boundary crossed), Auto-Focus Moon 0');
+      } else if (scrollDirection === 'up') {
+        if (currentMode === 'detail' && scrollTop <= switchToOverviewThreshold) {
+          setMode('overview');
+          if (!isDebugMode) {
+            setFocusedMoonIndex(0);
+          }
+          console.log(`Scroll UP: Switched to Overview mode (scrollTop: ${scrollTop})`);
         }
       }
+      
+      prevScrollTopRef.current = scrollTop; // Update previous scroll position
     };
 
     const container = scrollContainerRef.current;
@@ -60,11 +77,11 @@ function App() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'd') {
         toggleDebugMode();
-        console.log('Debug mode toggled', !isDebugMode);
+        console.log('Debug mode toggled', !useJourneyModeStore.getState().isDebugMode);
       }
 
-      if (isDebugMode) {
-        switch (event.key) {
+      if (useJourneyModeStore.getState().isDebugMode) {
+        switch (event.key.toLowerCase()) {
           case '0':
             setFocusedMoonIndex(0);
             setMode('overview');
@@ -85,6 +102,10 @@ function App() {
             setMode('detail');
             console.log('Debug: Focus Moon 3, Detail Mode');
             break;
+          case 's':
+            toggleScrollSnap();
+            console.log('Debug: Toggled scroll snap', useJourneyModeStore.getState().isScrollSnapEnabled);
+            break;
           default:
             break;
         }
@@ -95,18 +116,34 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isDebugMode, toggleDebugMode, setFocusedMoonIndex, setMode]);
+  }, [toggleDebugMode, setFocusedMoonIndex, setMode, toggleScrollSnap]);
 
   return (
     <>
       <BackgroundLayer />
       <MoonLayer />
-      {/* Visual indicator for current mode */}
-      <div style={{ position: 'fixed', top: 12, left: 12, zIndex: 10000, background: 'rgba(30,30,30,0.7)', color: 'white', padding: '6px 18px', borderRadius: 8, fontSize: 16, fontFamily: 'Sohne, sans-serif', letterSpacing: '0.08em', pointerEvents: 'none' }}>
-        MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}{isDebugMode ? ' (DEBUG)' : ''}
+      {/* Visual indicator for current mode and debug status */}
+      <div style={{ 
+        position: 'fixed', 
+        top: 12, 
+        left: 12, 
+        zIndex: 10000, 
+        background: 'rgba(30,30,30,0.7)', 
+        color: 'white', 
+        padding: '6px 18px', 
+        borderRadius: 8, 
+        fontSize: 16, 
+        fontFamily: 'Sohne, sans-serif', 
+        letterSpacing: '0.08em', 
+        pointerEvents: 'none' 
+      }}>
+        MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}
+        {isDebugMode ? ' (DEBUG)' : ''}
+        {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
       </div>
       <div
         ref={scrollContainerRef}
+        id="scrollContainer"
         style={{
           width: '100vw', 
           height: '100vh', 
@@ -114,7 +151,7 @@ function App() {
           overflowX: 'hidden', 
           position: 'relative', 
           zIndex: 1,
-          scrollSnapType: 'y mandatory'
+          scrollSnapType: isScrollSnapEnabled ? 'y mandatory' : 'none'
         }}
       >
         <OverviewArea />
