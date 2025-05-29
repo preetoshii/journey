@@ -119,6 +119,14 @@ export const ZoomWorld = () => {
   const [hoveredMoonId, setHoveredMoonId] = React.useState<string | null>(null);
   const mode = useJourneyModeStore((s) => s.mode);
 
+  // Layout logic for detail mode
+  const detailMoonX = -420; // X position for the focused moon
+  const dotMoonX = -800; // X position for the dot moons (moved a bit more right)
+  const detailMoonY = 0; // Centered Y for focused moon
+  const dotSpacing = 40; // Very tight vertical spacing between dots
+  // For now, first moon is focused in detail mode
+  const focusedIdx = mode === 'detail' ? 0 : null;
+
   // Keyboard navigation for L2
   const lastTopMoonRef = React.useRef('moon1');
   useEffect(() => {
@@ -201,24 +209,55 @@ export const ZoomWorld = () => {
         onWheel={handleWheel} // Unified trackpad handler
       >
         {/* Render all nodes (sun and moons) */}
-        {nodes.map((node, idx) => (
-          <SunMoonNode 
-            key={node.id} 
-            node={node} 
-            staggerOffset={idx * 3} // 3s stagger per moon
-            onDebugChange={(isDebug) => {
-              if (isDebug) {
-                setIsAnyMoonInDebug(true);
-              } else {
-                setIsAnyMoonInDebug(false);
-              }
-            }}
-            hoveredMoonId={hoveredMoonId}
-            onMouseEnter={() => setHoveredMoonId(node.id)}
-            onMouseLeave={() => setHoveredMoonId(null)}
-            data-zoom-moon={node.role === 'moon' ? 'true' : undefined}
-          />
-        ))}
+        {nodes.map((node, idx) => {
+          let targetX = node.positions[currentLevel].x;
+          let targetY = node.positions[currentLevel].y;
+          let targetScale = 1;
+          let isFocused = false;
+          let isDot = false;
+          if (mode === 'detail') {
+            if (focusedIdx !== null && idx === focusedIdx) {
+              // Focused moon: large, left column
+              targetX = detailMoonX;
+              targetY = detailMoonY;
+              targetScale = 1.18;
+              isFocused = true;
+              isDot = false;
+            } else {
+              // Dot moons: small, stacked vertically
+              const dotIdx = focusedIdx !== null && idx < focusedIdx ? idx : idx - 1;
+              targetX = dotMoonX;
+              targetY = detailMoonY + (dotIdx - 0.5) * dotSpacing;
+              targetScale = 0.05;
+              isDot = true;
+              isFocused = false;
+            }
+          }
+          return (
+            <SunMoonNode
+              key={node.id}
+              node={node}
+              staggerOffset={idx * 3}
+              onDebugChange={(isDebug) => {
+                if (isDebug) {
+                  setIsAnyMoonInDebug(true);
+                } else {
+                  setIsAnyMoonInDebug(false);
+                }
+              }}
+              hoveredMoonId={hoveredMoonId}
+              onMouseEnter={() => setHoveredMoonId(node.id)}
+              onMouseLeave={() => setHoveredMoonId(null)}
+              data-zoom-moon={node.role === 'moon' ? 'true' : undefined}
+              mode={mode}
+              isFocused={isFocused}
+              isDot={isDot}
+              targetX={targetX}
+              targetY={targetY}
+              targetScale={targetScale}
+            />
+          );
+        })}
       </motion.div>
     </div>
   );

@@ -7,6 +7,8 @@ interface MoonAnimatedBackgroundProps {
   rotatingImageUrl: string; // URL for the rotating overlay image
   size?: number; // Optional: size of the background (defaults to 600)
   staggerOffset?: number; // Optional: animation delay in seconds
+  hideRotatingImage?: boolean; // If true, fade out the rotating image only
+  hideRotatingImageDelay?: number; // Delay (seconds) before fading out the rotating image
 }
 
 /**
@@ -24,6 +26,8 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
   rotatingImageUrl,
   size = 600,
   staggerOffset = 0,
+  hideRotatingImage = false,
+  hideRotatingImageDelay = 0,
 }) => {
   return (
     <motion.div
@@ -83,7 +87,8 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
         draggable={false}
         animate={{ 
           rotate: [0, 30, -30, 0],
-          scale: [1, 1.3, 1]
+          scale: [1, 1.3, 1],
+          opacity: hideRotatingImage ? 0 : 1
         }}
         transition={{
           rotate: {
@@ -97,7 +102,8 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
             ease: 'easeInOut',
             repeat: Infinity,
             delay: staggerOffset,
-          }
+          },
+          opacity: { duration: 0.3, delay: hideRotatingImageDelay }
         }}
       />
     </motion.div>

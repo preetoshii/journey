@@ -34,6 +34,12 @@ interface SunMoonNodeProps {
   hoveredMoonId?: string | null;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  mode?: 'overview' | 'detail';
+  isFocused?: boolean;
+  isDot?: boolean; // always boolean, never null/undefined
+  targetX?: number;
+  targetY?: number;
+  targetScale?: number;
 }
 
 // Shared constants
@@ -71,7 +77,7 @@ function hexToRgba(hex: string, alpha: number) {
  * SunMoonNode
  * Renders a single node (sun or moon) with animation and click logic.
  */
-export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave }: SunMoonNodeProps) => {
+export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: SunMoonNodeProps) => {
   // --- Get relevant state and actions from the store ---
   const { currentLevel, zoomIn, setPanTarget, focusedMoonId } = useZoomStore();
   // --- Destructure node properties ---
@@ -79,8 +85,11 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
 
   // --- Derived state ---
   const isMoon = role === "moon";
-  const currentPosition = positions[currentLevel];
-  const isFocused = true; // Always show the focused state for L2 moons
+  const currentPosition = {
+    x: typeof targetX === 'number' ? targetX : positions[currentLevel].x,
+    y: typeof targetY === 'number' ? targetY : positions[currentLevel].y,
+  };
+  const scale = typeof targetScale === 'number' ? targetScale : 1;
   const [tapAnim, setTapAnim] = React.useState(false);
   const [bgActive, setBgActive] = React.useState(false);
   const [wasInLevel1, setWasInLevel1] = React.useState(false);
@@ -181,11 +190,11 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
         x: currentPosition.x,
         y: currentPosition.y,
         opacity: isDimmed ? 0.45 : (currentLevel === "level1" || role === "moon"
-          ? (currentLevel === "level2" && isMoon ? (isFocused ? 1 : 0.5) : 1)
+          ? (currentLevel === "level2" && isMoon ? (isFocused === true ? 1 : 0.5) : 1)
           : 0),
-        scale: tapAnim ? 1.15 : 1
+        scale: tapAnim ? 1.15 : scale
       }}
-      whileHover={isMoon ? { scale: 1.06 } : {}}
+      whileHover={isMoon && !Boolean(isDot) ? { scale: 1.06 } : {}}
       transition={{
         x: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
         opacity: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
@@ -204,37 +213,64 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
         mixBlendMode: isMoon ? 'screen' : undefined,
         pointerEvents: 'auto',
       }}
-      data-zoom-moon={isMoon ? 'true' : undefined}
+      data-zoom-moon={!!isMoon ? 'true' : undefined}
     >
-      {/* Circle */}
+      {/* Moon Container */}
       {isMoon && (
-        <>
-          <ArcProgressBar
-            progress={typeof node.progress === 'number' ? node.progress : 0}
-            radius={CIRCLE_L1_SIZE / 2}
-            thickness={6}
-            color="white"
-            glowColor="rgba(255,255,255,0.18)"
-            active={true}
-            animationDuration={1.3}
-            containerSize={CIRCLE_L1_SIZE + 40}
-            onDebugChange={onDebugChange}
-          />
+        <motion.div
+          style={{
+            position: "relative",
+            width: CIRCLE_L1_SIZE,
+            height: CIRCLE_L1_SIZE,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {/* Progress Bar */}
+          <motion.div
+            initial={{ opacity: 1 }}
+            animate={{ opacity: Boolean(isDot) ? 0 : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ArcProgressBar
+              progress={Boolean(isDot) ? 0 : (typeof node.progress === 'number' ? node.progress : 0)}
+              radius={CIRCLE_L1_SIZE / 2}
+              thickness={6}
+              color="white"
+              glowColor="rgba(255,255,255,0.18)"
+              active={true}
+              animationDuration={1.3}
+              containerSize={CIRCLE_L1_SIZE + 40}
+              onDebugChange={onDebugChange}
+            />
+          </motion.div>
+
+          {/* Animated Background */}
           <MoonAnimatedBackground
             color={color}
             active={true}
             rotatingImageUrl="/moon-backgrounds/rotatingimage.png"
             size={CIRCLE_L1_SIZE}
             staggerOffset={staggerOffset}
+            hideRotatingImage={Boolean(isDot)}
+            hideRotatingImageDelay={Boolean(isDot) ? 0.22 : 0}
           />
-          {/*
-            Text block for the moon node:
-            - "QUEST" label (static)
-            - Title (static)
-            - RotatingSubtitle (cycles through recent actions, animated)
-            This block is absolutely centered in the moon.
-            The RotatingSubtitle is designed to be easily swappable for future data sources.
-          */}
+
+          {/* Border Circle */}
+          <motion.div
+            style={{
+              position: "absolute",
+              width: CIRCLE_L1_SIZE,
+              height: CIRCLE_L1_SIZE,
+              borderRadius: "50%",
+              border: `${BORDER_WIDTH}px solid ${hexToRgba(lightenColor(color, 60), 0.68)}`,
+              boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`,
+              backgroundColor: "transparent",
+            }}
+          />
+
+          {/* Text Content */}
           <motion.div
             style={{
               position: "absolute",
@@ -251,17 +287,20 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
             initial={{
               top: CIRCLE_L1_SIZE / 2,
               transform: 'translate(-50%, -50%)',
+              opacity: Boolean(isDot) ? 0 : 1
             }}
             animate={{
               top: CIRCLE_L1_SIZE / 2,
               transform: 'translate(-50%, -50%)',
+              opacity: Boolean(isDot) ? 0 : 1
             }}
             transition={{
               type: "spring",
               stiffness: 100,
               damping: 15,
               mass: 1,
-              bounce: 0.2
+              bounce: 0.2,
+              opacity: { duration: 0.08 }
             }}
           >
             <div
@@ -299,56 +338,37 @@ export const SunMoonNode = ({ node, onDebugChange, staggerOffset = 0, hoveredMoo
             >
               {title}
             </motion.h3>
-            {/* RotatingSubtitle: cycles through recent actions for this moon. */}
             {Array.isArray(node.recentActions) && node.recentActions.length > 0 && (
               <RotatingSubtitle actions={node.recentActions} delay={subtitleDelay} dimmed={isDimmed} />
             )}
           </motion.div>
-        </>
+        </motion.div>
       )}
-      <motion.div
-        key={isMoon ? `moon-circle` : `sun-circle`}
-        style={{
-          borderRadius: "50%",
-          backgroundColor: "transparent",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          borderStyle: "solid",
-          borderColor: isMoon ? hexToRgba(lightenColor(color, 60), 0.68) : "white",
-          boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`
-        }}
-        initial={{
-          width: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
-          height: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
-          borderWidth: circleBorderWidth
-        }}
-        animate={{
-          width: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
-          height: isMoon ? CIRCLE_L1_SIZE : SUN_LARGE_SIZE,
-          borderWidth: circleBorderWidth,
-          scale: tapAnim ? 1.15 : 1
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 15,
-          mass: 1,
-          bounce: 0.2,
-          scale: { duration: 0.3, ease: "easeInOut" }
-        }}
-        onAnimationComplete={() => {
-          if (tapAnim) setTapAnim(false);
-        }}
-      >
-        {/* For sun, text is always inside */}
-        {role === "sun" && (
+
+      {/* Sun Circle */}
+      {role === "sun" && (
+        <motion.div
+          key="sun-circle"
+          style={{
+            borderRadius: "50%",
+            backgroundColor: "transparent",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            borderStyle: "solid",
+            borderColor: "white",
+            boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`,
+            width: SUN_LARGE_SIZE,
+            height: SUN_LARGE_SIZE,
+            borderWidth: circleBorderWidth
+          }}
+        >
           <div style={{ textAlign: "center", padding: "0 160px" }}>
             <h3 className="sunmoon-title" style={{ margin: 0, fontSize: "2.1rem", lineHeight: 1.5, padding: "0 0.1em" }}>{title}</h3>
           </div>
-        )}
-      </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }; 
