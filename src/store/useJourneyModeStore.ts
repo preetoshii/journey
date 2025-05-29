@@ -1,39 +1,46 @@
 import { create } from 'zustand';
 
-interface JourneyModeState {
+export interface JourneyModeState {
   mode: 'overview' | 'detail';
-  setMode: (mode: 'overview' | 'detail') => void;
-  focusedMoonIndex: number; // 0 for none, 1-3 for specific moons
-  setFocusedMoonIndex: (index: number) => void;
+  focusedMoonIndex: number; // 0 for sun/overview, 1-3 for moons in detail
   isDebugMode: boolean;
+  scrollContainer: HTMLDivElement | null;
+  isAutoScrolling: boolean;
+  isScrollSnapEnabled: boolean;
+  isClickToCenterEnabled: boolean;
+  activeCardKey: string | null; // For DetailArea card highlighting
+  isMoonHovered: boolean; // Added for Lottie visibility
+
+  // Actions
+  setMode: (mode: 'overview' | 'detail') => void;
+  setFocusedMoonIndex: (index: number) => void;
   toggleDebugMode: () => void;
-  scrollContainer: HTMLDivElement | null; // To store the main scroll container element
   setScrollContainer: (container: HTMLDivElement | null) => void;
-  isAutoScrolling: boolean; // True if programmatic scroll is in progress
   setIsAutoScrolling: (isScrolling: boolean) => void;
-  activeCardKey: string | null; // Key of the currently focused card (e.g., 'moon1-progress')
-  setActiveCardKey: (key: string | null) => void;
-  isScrollSnapEnabled: boolean; // To enable/disable scroll snapping
   toggleScrollSnap: () => void;
-  isClickToCenterEnabled: boolean; // To enable/disable click-to-center
   toggleClickToCenter: () => void;
+  setActiveCardKey: (key: string | null) => void;
+  setIsMoonHovered: (isHovered: boolean) => void; // Added action
 }
 
-export const useJourneyModeStore = create<JourneyModeState>((set) => ({
+export const useJourneyModeStore = create<JourneyModeState>((set, get) => ({
   mode: 'overview',
-  setMode: (mode) => set(() => ({ mode })),
-  focusedMoonIndex: 0, // Default to no moon focused
-  setFocusedMoonIndex: (index) => set(() => ({ focusedMoonIndex: index })),
+  focusedMoonIndex: 0,
   isDebugMode: false,
+  scrollContainer: null,
+  isAutoScrolling: false,
+  isScrollSnapEnabled: true,
+  isClickToCenterEnabled: false,
+  activeCardKey: null,
+  isMoonHovered: false, // Initial state
+
+  setMode: (mode) => set({ mode }),
+  setFocusedMoonIndex: (index) => set({ focusedMoonIndex: index }),
   toggleDebugMode: () => set((state) => ({ isDebugMode: !state.isDebugMode })),
-  scrollContainer: null, // Default to null
-  setScrollContainer: (container) => set(() => ({ scrollContainer: container })),
-  isAutoScrolling: false, // Default to false
-  setIsAutoScrolling: (isScrolling) => set(() => ({ isAutoScrolling: isScrolling })),
-  activeCardKey: null, // Default to no card active
-  setActiveCardKey: (key) => set(() => ({ activeCardKey: key })),
-  isScrollSnapEnabled: false, // Default to false (snap scrolling is off)
+  setScrollContainer: (container) => set({ scrollContainer: container }),
+  setIsAutoScrolling: (isScrolling) => set({ isAutoScrolling: isScrolling }),
   toggleScrollSnap: () => set((state) => ({ isScrollSnapEnabled: !state.isScrollSnapEnabled })),
-  isClickToCenterEnabled: false, // Default to false
-  toggleClickToCenter: () => set((state) => ({ isClickToCenterEnabled: !state.isClickToCenterEnabled }))
+  toggleClickToCenter: () => set((state) => ({ isClickToCenterEnabled: !state.isClickToCenterEnabled })),
+  setActiveCardKey: (key) => set({ activeCardKey: key }),
+  setIsMoonHovered: (isHovered) => set({ isMoonHovered: isHovered }), // Action implementation
 })); 

@@ -6,33 +6,76 @@ import styles from './detailScreenTypes.module.css';
 
 // Progress Screen: Shows progress percentage and transformation phase
 export const DetailScreenProgress: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
-  const recentActionsTyped = goal.recentActions || [];
-  const discoveryActions = recentActionsTyped.filter((a) => (a as any).text.toLowerCase().includes('uncovered') || (a as any).text.toLowerCase().includes('realized') || (a as any).text.toLowerCase().includes('noticed'));
-  const practiceActions = recentActionsTyped.filter((a) => (a as any).text.toLowerCase().includes('practiced') || (a as any).text.toLowerCase().includes('tried') || (a as any).text.toLowerCase().includes('set'));
-  const actionActions = recentActionsTyped.filter((a) => (a as any).text.toLowerCase().includes('volunteered') || (a as any).text.toLowerCase().includes('put') || (a as any).text.toLowerCase().includes('held'));
+  // Removed old phase logic based on recentActions
 
-  // Determine current phase based on action distribution
-  const getCurrentPhase = () => {
-    if (actionActions.length > 0) return 'Action';
-    if (practiceActions.length > 0) return 'Practice';
-    return 'Discovery';
+  const getPhaseInfo = (progress: number) => {
+    if (progress <= 33.33) {
+      return {
+        name: 'DISCOVERY',
+        color: '#A3B6FF', // Blueish
+        description: 'exploring and understanding the core of your objective',
+      };
+    }
+    if (progress <= 66.66) {
+      return {
+        name: 'GROUNDWORK',
+        color: '#FFB74D', // Orangeish
+        description: 'laying the foundation and building key skills',
+      };
+    }
+    return {
+      name: 'INTEGRATION',
+      color: '#81C784', // Greenish
+      description: 'applying your learnings and solidifying new habits',
+    };
   };
 
-  const currentPhase = getCurrentPhase();
-
-  const progressText = `You are currently ${goal.progress}% towards ${goal.title.toLowerCase()}, focusing on the ${currentPhase} phase.`;
+  const phaseInfo = getPhaseInfo(goal.progress || 0);
 
   return (
-    <p style={{
-      fontFamily: "'Sohne Buch', sans-serif", 
-      fontSize: '18px',
-      color: 'rgba(255, 255, 255, 0.8)',
-      lineHeight: 1.8,
-      margin: 0,
-      maxWidth: '80%',
-    }}>
-      {progressText}
-    </p>
+    <div style={{ width: '100%' }}>
+      <p style={{
+        fontFamily: "'Sohne Buch', sans-serif", 
+        fontSize: '18px',
+        color: 'rgba(255, 255, 255, 0.8)',
+        lineHeight: 1.8,
+        margin: 0,
+        maxWidth: '100%',
+        textAlign: 'left',
+        marginBottom: '1em',
+      }}>
+        This quest is in the{' '}
+        <strong style={{ color: phaseInfo.color, fontWeight: 'bold' }}>
+          {phaseInfo.name}
+        </strong>
+        {' '}phase of The BetterUp Process, focused on {phaseInfo.description}.
+      </p>
+      <p style={{
+        fontFamily: "'Sohne Buch', sans-serif",
+        fontSize: '18px',
+        color: 'rgba(255, 255, 255, 0.8)',
+        lineHeight: 1.8,
+        margin: 0,
+        maxWidth: '100%',
+        textAlign: 'left',
+        marginBottom: '1em',
+      }}>
+        Think of this as a structured program; while you may touch on various aspects, 
+        the main emphasis aligns with your current stage. 
+      </p>
+      <p style={{
+        fontFamily: "'Sohne Buch', sans-serif",
+        fontSize: '18px',
+        color: 'rgba(255, 255, 255, 0.8)',
+        lineHeight: 1.8,
+        margin: 0,
+        maxWidth: '100%',
+        textAlign: 'left',
+      }}>
+        By the end of this cycle, most people feel they've achieved their goal. 
+        We'll then synthesize your progress and re-evaluate together.
+      </p>
+    </div>
   );
 };
 
@@ -246,7 +289,7 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
 export const detailScreenTypes = [
   {
     key: 'progress',
-    label: 'Progress',
+    label: 'The BetterUp Process',
     component: DetailScreenProgress,
   },
   {

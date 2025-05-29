@@ -2,6 +2,7 @@ import OverviewArea from './components/Layout/OverviewArea';
 import DetailArea from './components/Layout/DetailArea';
 import BackgroundLayer from './components/Layout/BackgroundLayer';
 import MoonLayer from './components/Layout/MoonLayer';
+import ScrollIndicatorLottie from './components/ScrollIndicatorLottie';
 import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 
@@ -126,44 +127,47 @@ function App() {
 
   return (
     <>
-      <BackgroundLayer />
-      <MoonLayer />
-      {/* Visual indicator for current mode and debug status */}
-      <div style={{ 
-        position: 'fixed', 
-        top: 12, 
-        left: 12, 
-        zIndex: 10000, 
-        background: 'rgba(30,30,30,0.7)', 
-        color: 'white', 
-        padding: '6px 18px', 
-        borderRadius: 8, 
-        fontSize: 16, 
-        fontFamily: 'Sohne, sans-serif', 
-        letterSpacing: '0.08em', 
-        pointerEvents: 'none' 
-      }}>
-        MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}
-        {isDebugMode ? ' (DEBUG)' : ''}
-        {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
-        {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}
+      <div className="App" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
+        <BackgroundLayer />
+        <MoonLayer />
+        {/* Visual indicator for current mode and debug status */}
+        <div style={{ 
+          position: 'fixed', 
+          top: 12, 
+          left: 12, 
+          zIndex: 10000, 
+          background: 'rgba(30,30,30,0.7)', 
+          color: 'white', 
+          padding: '6px 18px', 
+          borderRadius: 8, 
+          fontSize: 16, 
+          fontFamily: 'Sohne, sans-serif', 
+          letterSpacing: '0.08em', 
+          pointerEvents: 'none' 
+        }}>
+          MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}
+          {isDebugMode ? ' (DEBUG)' : ''}
+          {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
+          {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}
+        </div>
+        <div
+          ref={scrollContainerRef}
+          id="scrollContainer"
+          style={{
+            width: '100vw', 
+            height: '100vh', 
+            overflowY: 'auto', 
+            overflowX: 'hidden', 
+            position: 'relative', 
+            zIndex: 1,
+            scrollSnapType: isScrollSnapEnabled ? 'y mandatory' : 'none'
+          }}
+        >
+          <OverviewArea />
+          <DetailArea />
+        </div>
       </div>
-      <div
-        ref={scrollContainerRef}
-        id="scrollContainer"
-        style={{
-          width: '100vw', 
-          height: '100vh', 
-          overflowY: 'auto', 
-          overflowX: 'hidden', 
-          position: 'relative', 
-          zIndex: 1,
-          scrollSnapType: isScrollSnapEnabled ? 'y mandatory' : 'none'
-        }}
-      >
-        <OverviewArea />
-        <DetailArea />
-      </div>
+      <ScrollIndicatorLottie />
     </>
   );
 }

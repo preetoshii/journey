@@ -118,6 +118,7 @@ export const MoonVisualizer = () => {
   const focusedMoonIndex = useJourneyModeStore((s) => s.focusedMoonIndex); // 0: none, 1-3: specific moon
   const setMode = useJourneyModeStore((s) => s.setMode);
   const setFocusedMoonIndex = useJourneyModeStore((s) => s.setFocusedMoonIndex);
+  const setIsMoonHovered = useJourneyModeStore((s) => s.setIsMoonHovered);
 
   // Layout logic for detail mode when a moon is focused
   const detailMoonX = -420; // X position for the focused moon
@@ -230,8 +231,18 @@ export const MoonVisualizer = () => {
               moonOrderIndex={arrayIndex + 1} // Passing 1-based index for consistency if needed by MoonNode
               staggerOffset={arrayIndex * 0.15} // Reduced stagger for quicker feel
               hoveredMoonId={hoveredMoonId}
-              onMouseEnter={() => node.role === 'moon' && setHoveredMoonId(node.id)}
-              onMouseLeave={() => node.role === 'moon' && setHoveredMoonId(null)}
+              onMouseEnter={() => {
+                if (node.role === 'moon') {
+                  setHoveredMoonId(node.id);
+                  setIsMoonHovered(true);
+                }
+              }}
+              onMouseLeave={() => {
+                if (node.role === 'moon') {
+                  setHoveredMoonId(null);
+                  setIsMoonHovered(false);
+                }
+              }}
               mode={mode} // Pass current mode
               isFocused={isFocused}
               isDot={isDot}
