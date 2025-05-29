@@ -18,6 +18,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ZoomNode } from '../../types';
 import React from 'react';
+import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import { ArcProgressBar } from './ArcProgressBar';
 import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
@@ -26,6 +27,7 @@ import { RotatingSubtitle } from './RotatingSubtitle';
 // Props for the MoonNode component
 interface MoonNodeProps {
   node: ZoomNode; // The moon node to render
+  moonOrderIndex?: number; // 1-based index of the moon in the visualizer array
   staggerOffset?: number; // Optional: stagger animation offset in seconds
   hoveredMoonId?: string | null;
   onMouseEnter?: () => void;
@@ -73,7 +75,8 @@ function hexToRgba(hex: string, alpha: number) {
  * MoonNode
  * Renders a single moon node with animation and click logic.
  */
-export const MoonNode = ({ node, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
+export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
+  const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling } = useJourneyModeStore();
   // --- Derived state ---
   const { positions, title, subtitle, color } = node; // Removed role as it's always 'moon'
   const currentLevel = 'level1'; // Maintained for position data structure
@@ -88,10 +91,12 @@ export const MoonNode = ({ node, staggerOffset = 0, hoveredMoonId, onMouseEnter,
   // const [wasInLevel1, setWasInLevel1] = React.useState(true); // Not needed anymore
   const [arcActive, setArcActive] = React.useState(false);
   
-  // Effect to handle focus changes
+  // Effect to handle focus changes for tap animation
   React.useEffect(() => {
     if (isFocused) {
       setTapAnim(true);
+    } else {
+      setTapAnim(false);
     }
   }, [isFocused]);
 
@@ -121,7 +126,28 @@ export const MoonNode = ({ node, staggerOffset = 0, hoveredMoonId, onMouseEnter,
   const moonSubtitleFontSize = "0.95rem";
 
   const handleClick = () => {
-    // Click logic can be handled by parent or be specific to moons if needed
+    if (node.role === 'moon') {
+      setMode('detail');
+      if (moonOrderIndex) {
+        setFocusedMoonIndex(moonOrderIndex);
+      }
+
+      if (scrollContainer && node.id) {
+        const detailElement = document.getElementById(node.id);
+        if (detailElement) {
+          setIsAutoScrolling(true); // Set flag before starting scroll
+          detailElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          console.log(`Scrolling to ${node.id}`);
+
+          // Reset the flag after a delay (adjust duration as needed for smooth scroll)
+          setTimeout(() => {
+            setIsAutoScrolling(false);
+          }, 1000); // 1 second, adjust if scroll takes longer/shorter
+        } else {
+          console.warn(`Detail element with ID ${node.id} not found for scrolling.`);
+        }
+      }
+    }
   };
 
   let subtitleDelay = 0;
@@ -137,9 +163,9 @@ export const MoonNode = ({ node, staggerOffset = 0, hoveredMoonId, onMouseEnter,
         x: currentPosition.x,
         y: currentPosition.y,
         opacity: isDimmed ? 0.45 : 1,
-        scale: tapAnim ? 1.15 : scale
+        scale: scale
       }}
-      whileHover={!Boolean(isDot) ? { scale: 1.06 } : {}} // Only hover scale if not a dot
+      whileHover={!Boolean(isDot) ? { scale: scale * 1.06 } : {}}
       transition={{
         x: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },
         opacity: { type: "spring", stiffness: 100, damping: 15, mass: 1, bounce: 0.2 },

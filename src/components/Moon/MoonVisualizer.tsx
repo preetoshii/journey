@@ -1,7 +1,7 @@
 /*
   MoonVisualizer.tsx
   -------------------
-  This is the main component for the moon visualization interface. It renders the sun and moons, and manages their layout and appearance based on the current mode (overview/detail).
+  This is the main component for the moon visualization interface. It renders the sun and moons, and manages their layout and appearance based on the current mode (overview/detail) and the focused moon.
 
   HOW TO USE:
   - This component is the root of the moon visualization UI.
@@ -9,13 +9,14 @@
 
   WHAT IT HANDLES:
   - Renders all nodes (sun and moons) at their correct positions
-  - Manages layout for overview and detail modes
-  - Handles transitions between modes
+  - Manages layout based on `mode` and `focusedMoonIndex` from the store.
+  - Handles transitions between focused states.
+  - Renders placeholder dots for focused moon slots in detail view.
 */
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MoonNode } from './MoonNode';
-import React, { useEffect } from 'react';
+import React from 'react'; // Removed useEffect as it's not used directly here anymore
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import type { ZoomNode } from '../../types';
 
@@ -102,22 +103,31 @@ export const nodes: ZoomNode[] = [
 /**
  * MoonVisualizer
  * Main component for the moon visualization UI.
- * Handles rendering and layout of moons.
+ * Handles rendering and layout of moons based on global state.
  */
 export const MoonVisualizer = () => {
-  const currentLevel = 'level1'; // Kept for positions, but zoom is removed
+  const currentLevel = 'level1'; // Kept for base positions, but zoom is removed
   const [hoveredMoonId, setHoveredMoonId] = React.useState<string | null>(null);
   const mode = useJourneyModeStore((s) => s.mode);
+  const focusedMoonIndex = useJourneyModeStore((s) => s.focusedMoonIndex); // 0: none, 1-3: specific moon
+  const setMode = useJourneyModeStore((s) => s.setMode);
+  const setFocusedMoonIndex = useJourneyModeStore((s) => s.setFocusedMoonIndex);
 
-  // Layout logic for detail mode
+  // Layout logic for detail mode when a moon is focused
   const detailMoonX = -420; // X position for the focused moon
-  const dotMoonX = -800; // X position for the dot moons
-  const detailMoonY = 0; // Centered Y for focused moon
-  const dotSpacing = 40; // Vertical spacing between dots
-  
-  // Determine focused moon index (e.g., first moon in detail mode)
-  // This could be made dynamic based on scroll or click in the future
-  const focusedIdx = mode === 'detail' ? 0 : null;
+  const dotMoonX = -800;    // X position for the dot moons
+  const detailMoonY = 0;    // Centered Y for focused moon
+  const dotSpacing = 40;    // Vertical spacing between dots
+  const placeholderDotSize = 22; // Approx. 440 * 0.05 scale
+
+  const moonNodesOnly = nodes.filter(node => node.role === 'moon');
+  const numberOfMoons = moonNodesOnly.length;
+
+  // Calculate Y positions for each of the 3 dot slots
+  const dotSlotYPositions = Array.from({ length: numberOfMoons }, (_, i) => {
+    return detailMoonY + (i - (numberOfMoons - 1) / 2) * dotSpacing;
+  });
+  // For 3 moons, this results in: [-dotSpacing, 0, dotSpacing] relative to detailMoonY
 
   return (
     <div 
@@ -129,18 +139,23 @@ export const MoonVisualizer = () => {
         pointerEvents: 'none', // Main container doesn't need pointer events
       }}
       onMouseDown={(e) => {
-        // Flag for drag vs. click detection (if needed for future interactions)
         (window as any)._moonVisualizerMouseDown = { x: e.clientX, y: e.clientY };
       }}
       onMouseUp={(e) => {
-        // Handle click outside moons in detail mode (e.g., to return to overview)
         if (mode !== 'detail') return;
+        // Only act if a moon is currently focused
+        if (focusedMoonIndex === 0) return; 
+
         const down = (window as any)._moonVisualizerMouseDown;
-        if (down && (Math.abs(e.clientX - down.x) > 5 || Math.abs(e.clientY - down.y) > 5)) return; // Drag
-        if ((e.target as HTMLElement).closest('[data-moon-node]')) return; // Clicked on a moon
+        // Check for drag vs. click
+        if (down && (Math.abs(e.clientX - down.x) > 5 || Math.abs(e.clientY - down.y) > 5)) return;
+        // Check if click was on a moon node itself
+        if ((e.target as HTMLElement).closest('[data-moon-node]')) return;
         
-        // TODO: Implement logic to switch back to overview mode if desired
-        // useJourneyModeStore.getState().setMode('overview');
+        // Click was outside a moon in detail mode while a moon was focused
+        // Transition back to overview mode and unfocus moon
+        setMode('overview');
+        setFocusedMoonIndex(0);
       }}
     >
       <motion.div
@@ -153,50 +168,65 @@ export const MoonVisualizer = () => {
           position: "relative"
         }}
       >
-        {nodes.map((node, idx) => {
+        {nodes.map((node, arrayIndex) => { // Renamed idx to arrayIndex for clarity
           let targetX = node.positions[currentLevel].x;
           let targetY = node.positions[currentLevel].y;
           let targetScale = 1;
           let isFocused = false;
           let isDot = false;
 
-          if (mode === 'detail') {
-            if (focusedIdx !== null && idx === focusedIdx) {
-              // Focused moon: large, left column
-              targetX = detailMoonX;
-              targetY = detailMoonY;
-              targetScale = 1.18;
-              isFocused = true;
-            } else {
-              // Dot moons: small, stacked vertically
-              const dotIdx = focusedIdx !== null && idx < focusedIdx ? idx : idx - 1;
-              targetX = dotMoonX;
-              targetY = detailMoonY + (dotIdx - (nodes.filter(n => n.role === 'moon').length -1) / 2) * dotSpacing;
-              targetScale = 0.05;
-              isDot = true;
-            }
-          }
-          
-          // Ensure SunNode (if any) is not treated as a dot or focusable moon
+          // Sun node handling (always uses its L1 position, never focused/dot)
           if (node.role === 'sun') {
-            isFocused = false;
-            isDot = false;
-            // Use its L1 position directly, or adjust if needed for overview
             targetX = node.positions.level1.x;
             targetY = node.positions.level1.y;
-            targetScale = 1; 
+            targetScale = 1;
+            isFocused = false;
+            isDot = false;
+          } else if (node.role === 'moon') {
+            // Moon specific logic
+            if (mode === 'overview' || focusedMoonIndex === 0) {
+              // Standard overview layout for all moons
+              targetX = node.positions[currentLevel].x;
+              targetY = node.positions[currentLevel].y;
+              targetScale = 1;
+              isFocused = false;
+              isDot = false;
+            } else {
+              // Detail mode with a focused moon (focusedMoonIndex is 1, 2, or 3)
+              // focusedMoonStoreIndex is 0-based for array comparison
+              const focusedMoonStoreIndex = focusedMoonIndex - 1; 
+
+              if (arrayIndex === focusedMoonStoreIndex) {
+                // This moon is the currently focused one
+                targetX = detailMoonX;
+                targetY = detailMoonY;
+                targetScale = 1.5; // Adjusted scale for focused moon
+                isFocused = true;
+                isDot = false;
+              } else {
+                // This moon is a dot, send it to its designated slot Y position
+                targetX = dotMoonX;
+                targetY = dotSlotYPositions[arrayIndex]; // Use the moon's own slot index
+                targetScale = 0.05;
+                isFocused = false;
+                isDot = true;
+              }
+            }
           }
 
           return (
             <MoonNode
               key={node.id}
               node={node}
-              staggerOffset={idx * 3} // Stagger animation for visual appeal
+              // Pass the moon's 1-based index for click handling if needed, or its actual array index
+              // For now, MoonNode can use its own node.id or we can pass its actual 0-based index.
+              // The focusedMoonIndex in store is 1-based for user-facing logic (1,2,3).
+              moonOrderIndex={arrayIndex + 1} // Passing 1-based index for consistency if needed by MoonNode
+              staggerOffset={arrayIndex * 0.15} // Reduced stagger for quicker feel
               hoveredMoonId={hoveredMoonId}
               onMouseEnter={() => node.role === 'moon' && setHoveredMoonId(node.id)}
               onMouseLeave={() => node.role === 'moon' && setHoveredMoonId(null)}
-              data-moon-node='true' // Simplified, as it's always a moon
-              mode={mode}
+              mode={mode} // Pass current mode
               isFocused={isFocused}
               isDot={isDot}
               targetX={targetX}
@@ -205,6 +235,32 @@ export const MoonVisualizer = () => {
             />
           );
         })}
+
+        {/* Placeholder for the focused moon's slot */}
+        <AnimatePresence>
+          {mode === 'detail' && focusedMoonIndex > 0 && (
+            <motion.div
+              key={`placeholder-dot-${focusedMoonIndex - 1}`} // Key by the slot index (0-based)
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{
+                opacity: 1,
+                scale: 1, 
+                x: dotMoonX,
+                y: dotSlotYPositions[focusedMoonIndex - 1], // Position in the focused moon's actual slot
+              }}
+              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+              transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.5 }}
+              style={{
+                position: "absolute",
+                width: placeholderDotSize,
+                height: placeholderDotSize,
+                borderRadius: "50%",
+                backgroundColor: "rgba(80, 80, 80, 0.9)", // Dark grey placeholder
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
