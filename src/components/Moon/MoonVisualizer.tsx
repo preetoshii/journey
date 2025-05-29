@@ -14,7 +14,7 @@
 */
 
 import { motion } from 'framer-motion';
-import { SunMoonNode } from './SunMoonNode';
+import { MoonNode } from './MoonNode';
 import React, { useEffect } from 'react';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import type { ZoomNode } from '../../types';
@@ -188,14 +188,14 @@ export const MoonVisualizer = () => {
           }
 
           return (
-            <SunMoonNode
+            <MoonNode
               key={node.id}
               node={node}
               staggerOffset={idx * 3} // Stagger animation for visual appeal
               hoveredMoonId={hoveredMoonId}
               onMouseEnter={() => node.role === 'moon' && setHoveredMoonId(node.id)}
               onMouseLeave={() => node.role === 'moon' && setHoveredMoonId(null)}
-              data-moon-node={node.role === 'moon' ? 'true' : undefined} // For event targeting
+              data-moon-node='true' // Simplified, as it's always a moon
               mode={mode}
               isFocused={isFocused}
               isDot={isDot}

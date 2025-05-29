@@ -1,7 +1,7 @@
-import OverviewArea from './components/OverviewArea';
-import DetailArea from './components/DetailArea.tsx';
-import BackgroundLayer from './components/BackgroundLayer';
-import MoonLayer from './components/MoonLayer';
+import OverviewArea from './components/Layout/OverviewArea';
+import DetailArea from './components/Layout/DetailArea';
+import BackgroundLayer from './components/Layout/BackgroundLayer';
+import MoonLayer from './components/Layout/MoonLayer';
 import React, { useRef, useEffect, useState } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 

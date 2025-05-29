@@ -1,6 +1,42 @@
+/*
+  OverviewArea.tsx
+  ------------------
+  This component renders the top section of the scrollable journey page, visible on initial load.
+  It primarily displays the "North Star" aspiration and its associated text.
+  The moons, while visually part of this overview, are rendered by the `MoonLayer`.
+
+  KEY FEATURES:
+  - Occupies the full viewport height and width, serving as the initial view.
+  - Displays the North Star icon (an animated SVG) and its descriptive text.
+  - The North Star content (icon and text) fades out when the page scrolls into "detail mode"
+    and fades back in when returning to "overview mode".
+  - The North Star icon has continuous subtle scale and rotation animations.
+
+  HOW IT WORKS:
+  - The main container div is set to full viewport size.
+  - A `motion.div` groups the North Star icon and text elements.
+    This group is absolutely positioned towards the top-center of the screen.
+  - The opacity of this group is animated based on the `mode` from `useJourneyModeStore`
+    (fades out in 'detail' mode).
+  - The North Star SVG icon uses Framer Motion for continuous scale (pulse) and intermittent
+    rotation animations.
+
+  USAGE:
+  - Rendered as the first main section in the scrollable page layout (e.g., in `App.tsx`).
+  - Works in conjunction with `DetailArea` (which appears below it) and `MoonLayer`
+    (which renders moons on top of it).
+
+  RELATIONSHIP TO OTHER COMPONENTS:
+  - `MoonLayer`: Renders moons that visually appear as part of this overview but are in a
+    separate, higher layer.
+  - `DetailArea`: The section that appears when scrolling past the `OverviewArea`.
+  - `useJourneyModeStore`: Provides the `mode` state that triggers the fade animation.
+*/
+
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useJourneyModeStore } from '../store/useJourneyModeStore';
+import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 
 const OverviewArea: React.FC = () => {
   const mode = useJourneyModeStore((s) => s.mode);

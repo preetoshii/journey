@@ -11,15 +11,35 @@ interface MoonAnimatedBackgroundProps {
   hideRotatingImageDelay?: number; // Delay (seconds) before fading out the rotating image
 }
 
-/**
- * MoonAnimatedBackground
- * Modular, extensible animated background for moons.
- * - 3 layers: flat color, grid overlay, rotating overlay
- * - Fades in/out based on 'active' prop
- * - Rotating overlay spins 360deg every 15s
- * - All assets are passed as props for easy swapping
- * - Future: swap internals for ThreeJS/canvas, keep API the same
- */
+/*
+  MoonAnimatedBackground.tsx
+  --------------------------
+  This component creates a layered, animated circular background, typically for moon elements.
+  It combines a flat color base with an animated image overlay.
+
+  KEY FEATURES:
+  - Provides a two-layer background: a solid color and an animated image.
+  - The entire background fades in/out based on an `active` prop.
+  - The overlay image has continuous, subtle rotation and scaling animations.
+  - The rotating image can be selectively faded out (e.g., for "dot" moon states).
+  - Customizable via props for color, image URL, size, and animation timing.
+  - Uses Framer Motion for smooth animations.
+
+  HOW IT WORKS:
+  - A `motion.div` acts as the main container, controlling overall opacity.
+  - Inside, a `div` renders the flat background color.
+  - A `motion.img` renders the overlay image with looping rotation and scale animations.
+  - `mixBlendMode: 'screen'` is used for visual blending.
+
+  USAGE:
+  - Used by `MoonNode` to provide its dynamic background.
+  - Props control appearance and active state.
+
+  NOTE:
+  - The existing comment mentioning a "grid overlay" (Layer 2) and a full 360-degree spin
+    is not reflective of the current implementation. The current version has two layers
+    (color and rotating image) and the image has a back-and-forth rotation with scaling.
+*/
 export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
   color,
   active,

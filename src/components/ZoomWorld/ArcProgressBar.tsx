@@ -110,8 +110,6 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     return polarToCartesian(center, center, radius, endAngle);
   }, [active, animatedProgress, center, radius, startAngle]);
 
-  console.log('[ArcProgressBar] progress:', progress, 'radius:', radius, 'containerSize:', containerSize, 'active:', active);
-  console.log('[ArcProgressBar] arcPath (render):', arcPath);
   return (
     <svg
       width={containerSize}
