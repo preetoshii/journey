@@ -226,7 +226,7 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
     );
   }
 
-  const actionsToShow = showAll ? actions : actions.slice(0, 4);
+  const actionsToShow = showAll ? actions : actions.slice(0, 3);
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -240,34 +240,39 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
             padding: '32px 36px',
             minHeight: 90,
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 36,
             marginBottom: 0,
-            transform: `rotate(${index % 2 === 0 ? -1 : 1}deg)`,
-            transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
           }}
         >
-          <span style={{
-            fontFamily: "'Sohne Buch', sans-serif",
-            fontStyle: 'italic',
-            fontWeight: 400,
-            fontSize: 18,
-            color: 'rgba(255,255,255,0.45)',
-            marginBottom: 5,
-            letterSpacing: 0.2,
-          }}>{action.date}</span>
-          <span style={{
-            fontFamily: "'Sohne Buch', sans-serif",
-            fontSize: 20,
-            color: 'rgba(255,255,255,0.92)',
-            lineHeight: 1.7,
-            fontWeight: 400,
-            margin: 0,
-            textAlign: 'left',
-          }}>{action.title}</span>
+          {/* Star SVG */}
+          <svg width={16} height={16} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+            <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
+          </svg>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <span style={{
+              fontFamily: "'Sohne Buch', sans-serif",
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 18,
+              color: 'rgba(255,255,255,0.45)',
+              marginBottom: 5,
+              letterSpacing: 0.2,
+            }}>{action.date}</span>
+            <span style={{
+              fontFamily: "'Sohne Buch', sans-serif",
+              fontSize: 20,
+              color: 'rgba(255,255,255,0.92)',
+              lineHeight: 1.7,
+              fontWeight: 400,
+              margin: 0,
+              textAlign: 'left',
+            }}>{action.title}</span>
+          </div>
         </div>
       ))}
-      {actions.length > 4 && !showAll && (
+      {actions.length > 3 && !showAll && (
         <button
           style={{
             background: 'none',
@@ -304,7 +309,7 @@ export const detailScreenTypes = [
   },
   {
     key: 'moments',
-    label: "Steps you've taken",
+    label: 'Accomplishments',
     component: DetailScreenMoments,
   },
 ]; 
