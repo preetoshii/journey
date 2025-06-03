@@ -45,7 +45,7 @@ const MoonLayer: React.FC = () => (
       height: '100vh',
       zIndex: 10,
       pointerEvents: 'none', // moons handle their own pointer events
-      // mixBlendMode: 'screen', // This was on MoonLayer, AccomplishmentCutsceneOverlay might need its own or this might affect it
+      mixBlendMode: 'screen',
     }}
   >
     <MoonVisualizer />
