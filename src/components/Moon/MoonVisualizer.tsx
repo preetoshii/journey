@@ -139,12 +139,17 @@ export const MoonVisualizer = () => {
 
   return (
     <div 
-      style={{ 
-        width: "100vw",
+      style={{
+        position: 'sticky',
+        top: 0,
+        width: "100%",
         height: "100vh",
         overflow: "hidden",
-        position: "relative",
-        pointerEvents: 'none', // Main container doesn't need pointer events
+        pointerEvents: 'none',
+        zIndex: 10,
+        mixBlendMode: 'screen',
+        gridRow: '1 / 2',
+        gridColumn: '1 / 2',
       }}
       onMouseDown={(e) => {
         (window as any)._moonVisualizerMouseDown = { x: e.clientX, y: e.clientY };

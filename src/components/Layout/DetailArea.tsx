@@ -145,8 +145,6 @@ const DetailArea: React.FC = () => {
   return (
     <div
       style={{
-        height: '100vh',
-        marginTop: '100vh',
         display: 'flex',
         flexDirection: 'row',
         color: 'white',

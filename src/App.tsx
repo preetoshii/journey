@@ -1,7 +1,8 @@
 import OverviewArea from './components/Layout/OverviewArea';
 import DetailArea from './components/Layout/DetailArea';
 import BackgroundLayer from './components/Layout/BackgroundLayer';
-import MoonLayer from './components/Layout/MoonLayer';
+import { MoonVisualizer } from './components/Moon/MoonVisualizer';
+import AccomplishmentCutsceneOverlay from './components/Cutscene/AccomplishmentCutsceneOverlay';
 import ScrollIndicatorLottie from './components/ScrollIndicatorLottie';
 import DebugMenu from './components/Cutscene/DebugMenu';
 import React, { useRef, useEffect } from 'react';
@@ -167,8 +168,7 @@ function App() {
     <>
       <div className="App" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
         <BackgroundLayer />
-        <MoonLayer />
-        {/* Visual indicator for current mode and debug status */}
+        <AccomplishmentCutsceneOverlay />
         <div style={{ 
           position: 'fixed', 
           top: 12, 
@@ -199,11 +199,18 @@ function App() {
             overflowX: 'hidden', 
             position: 'relative', 
             zIndex: 1,
-            scrollSnapType: isScrollSnapEnabled ? 'y mandatory' : 'none'
+            scrollSnapType: isScrollSnapEnabled ? 'y mandatory' : 'none',
+            display: 'grid',
+            gridTemplateRows: '100vh auto',
           }}
         >
-          <OverviewArea />
-          <DetailArea />
+          <div style={{ gridRow: '1 / 2', gridColumn: '1 / 2', position: 'relative' }}>
+            <OverviewArea />
+          </div>
+          <MoonVisualizer />
+          <div style={{ gridRow: '2 / 3', gridColumn: '1 / 2' }}>
+            <DetailArea />
+          </div>
         </div>
       </div>
       <ScrollIndicatorLottie />
