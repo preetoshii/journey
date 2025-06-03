@@ -189,29 +189,29 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
       animate={{
         x: currentPosition.x,
         y: currentPosition.y,
-        opacity: isDimmed ? 0.45 : 1,
+        opacity: isDimmed && !isCutsceneActive ? 0.45 : 1,
         scale: scale
       }}
-      whileHover={!Boolean(isDot) ? { scale: scale * 1.06 } : {}}
+      whileHover={!isCutsceneActive && !Boolean(isDot) ? { scale: scale * 1.06 } : {}}
       transition={{
         x: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
         opacity: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
         scale: { type: "spring", stiffness: 240, damping: 24 }
       }}
-      onClick={handleClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onClick={!isCutsceneActive ? handleClick : undefined}
+      onMouseEnter={!isCutsceneActive ? onMouseEnter : undefined}
+      onMouseLeave={!isCutsceneActive ? onMouseLeave : undefined}
       style={{
         position: "absolute",
-        cursor: "pointer", // Moons are always clickable
+        cursor: !isCutsceneActive ? "pointer" : "default",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: "1rem",
-        mixBlendMode: 'screen', // Moons always use screen blend mode
-        pointerEvents: 'auto',
+        mixBlendMode: 'screen',
+        pointerEvents: isCutsceneActive ? 'none' : 'auto',
       }}
-      data-moon-node='true' // Simplified data attribute
+      data-moon-node='true'
     >
       {/* Pulse effect overlay */}
       <motion.div

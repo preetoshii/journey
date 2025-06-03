@@ -51,6 +51,7 @@ function App() {
     isClickToCenterEnabled,
     toggleClickToCenter,
     triggerCutscene,
+    isCutsceneActive,
   } = useJourneyModeStore();
 
   useEffect(() => {
@@ -194,7 +195,7 @@ function App() {
           style={{
             width: '100vw', 
             height: '100vh', 
-            overflowY: 'auto', 
+            overflowY: isCutsceneActive ? 'hidden' : 'auto', 
             overflowX: 'hidden', 
             position: 'relative', 
             zIndex: 1,
