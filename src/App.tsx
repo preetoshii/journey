@@ -3,6 +3,7 @@ import DetailArea from './components/Layout/DetailArea';
 import BackgroundLayer from './components/Layout/BackgroundLayer';
 import MoonLayer from './components/Layout/MoonLayer';
 import ScrollIndicatorLottie from './components/ScrollIndicatorLottie';
+import DebugMenu from './components/Cutscene/DebugMenu';
 import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 
@@ -186,6 +187,7 @@ function App() {
           {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
           {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}
         </div>
+        <DebugMenu />
         <div
           ref={scrollContainerRef}
           id="scrollContainer"
