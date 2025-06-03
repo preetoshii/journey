@@ -119,6 +119,7 @@ export const MoonVisualizer = () => {
   const setMode = useJourneyModeStore((s) => s.setMode);
   const setFocusedMoonIndex = useJourneyModeStore((s) => s.setFocusedMoonIndex);
   const setIsMoonHovered = useJourneyModeStore((s) => s.setIsMoonHovered);
+  const storeNodes = useJourneyModeStore((s) => s.nodes); // Add this line to get nodes from store
 
   // Layout logic for detail mode when a moon is focused
   const detailMoonX = -420; // X position for the focused moon
@@ -127,7 +128,7 @@ export const MoonVisualizer = () => {
   const dotSpacing = 40;    // Vertical spacing between dots
   const placeholderDotSize = 22; // Approx. 440 * 0.05 scale
 
-  const moonNodesOnly = nodes.filter(node => node.role === 'moon');
+  const moonNodesOnly = storeNodes.filter(node => node.role === 'moon'); // Use storeNodes instead of nodes
   const numberOfMoons = moonNodesOnly.length;
 
   // Calculate Y positions for each of the 3 dot slots
@@ -175,7 +176,7 @@ export const MoonVisualizer = () => {
           position: "relative"
         }}
       >
-        {nodes.map((node, arrayIndex) => { // Renamed idx to arrayIndex for clarity
+        {storeNodes.map((node, arrayIndex) => { // Renamed idx to arrayIndex for clarity
           let targetX = node.positions[currentLevel].x;
           let targetY = node.positions[currentLevel].y;
           let targetScale = 1;

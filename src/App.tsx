@@ -6,6 +6,34 @@ import ScrollIndicatorLottie from './components/ScrollIndicatorLottie';
 import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 
+// Import accomplishment types for dummy data
+import type { Accomplishment } from './types/accomplishmentTypes';
+
+// Dummy data for testing cutscene
+const dummyAccomplishmentsData: Accomplishment[] = [
+  {
+    id: 'accomplishment1',
+    title: 'Mastered Mindfulness',
+    recap: 'After weeks of practice, you can now stay present and focused for extended periods, significantly reducing daily stress.',
+    goals: [
+      { goalId: 'moon1', innerWorkAmount: 10 },
+      { goalId: 'moon2', innerWorkAmount: 5 },
+    ],
+  },
+  {
+    id: 'accomplishment2',
+    title: 'Effective Communication Breakthrough',
+    recap: 'You successfully navigated a series of tough conversations, leading to better team collaboration and understanding.',
+    goals: [{ goalId: 'moon3', innerWorkAmount: 8 }],
+  },
+  {
+    id: 'accomplishment3',
+    title: 'Project Phoenix Completed',
+    recap: 'Successfully launched Project Phoenix ahead of schedule, showcasing strong leadership and execution.',
+    goals: [{ goalId: 'moon1', innerWorkAmount: 7 }],
+  },
+];
+
 function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollTopRef = useRef<number>(0); // Ref to store previous scroll top
@@ -20,7 +48,8 @@ function App() {
     isScrollSnapEnabled,
     toggleScrollSnap,
     isClickToCenterEnabled,
-    toggleClickToCenter
+    toggleClickToCenter,
+    triggerCutscene,
   } = useJourneyModeStore();
 
   useEffect(() => {
@@ -75,55 +104,62 @@ function App() {
     };
   }, [setMode, setFocusedMoonIndex, isDebugMode, isAutoScrolling, setScrollContainer]);
 
-  // Debug mode keyboard listener effect
+  // Debug mode and Cutscene Trigger keyboard listener effect
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'd') {
         toggleDebugMode();
-        console.log('Debug mode toggled', !useJourneyModeStore.getState().isDebugMode);
-      }
-
+      } else if (event.key.toLowerCase() === 'a') {
+        console.log('[App] \'A\' key pressed, triggering cutscene with dummy data.');
+        triggerCutscene(dummyAccomplishmentsData);
+      } 
+      // This block should be separate from the A key, but still within the main keydown handler
       if (useJourneyModeStore.getState().isDebugMode) {
-        switch (event.key.toLowerCase()) {
-          case '0':
-            setFocusedMoonIndex(0);
-            setMode('overview');
-            console.log('Debug: Focus Moon 0, Overview Mode');
-            break;
-          case '1':
-            setFocusedMoonIndex(1);
-            setMode('detail');
-            console.log('Debug: Focus Moon 1, Detail Mode');
-            break;
-          case '2':
-            setFocusedMoonIndex(2);
-            setMode('detail');
-            console.log('Debug: Focus Moon 2, Detail Mode');
-            break;
-          case '3':
-            setFocusedMoonIndex(3);
-            setMode('detail');
-            console.log('Debug: Focus Moon 3, Detail Mode');
-            break;
-          case 's':
-            toggleScrollSnap();
-            console.log('Debug: Toggled scroll snap', useJourneyModeStore.getState().isScrollSnapEnabled);
-            break;
-          case 'c':
-            toggleClickToCenter();
-            console.log('Debug: Toggled click-to-center', useJourneyModeStore.getState().isClickToCenterEnabled);
-            break;
-          default:
-            break;
+          // Check for debug-mode specific keys (0,1,2,3,s,c) only if isDebugMode is true
+          // This was likely intended to be active only when debug mode is on, 
+          // and not exclusively an 'else' to the 'a' key.
+          switch (event.key.toLowerCase()) {
+            case '0':
+              setFocusedMoonIndex(0);
+              setMode('overview');
+              console.log('Debug: Focus Moon 0, Overview Mode');
+              break;
+            case '1':
+              setFocusedMoonIndex(1);
+              setMode('detail');
+              console.log('Debug: Focus Moon 1, Detail Mode');
+              break;
+            case '2':
+              setFocusedMoonIndex(2);
+              setMode('detail');
+              console.log('Debug: Focus Moon 2, Detail Mode');
+              break;
+            case '3':
+              setFocusedMoonIndex(3);
+              setMode('detail');
+              console.log('Debug: Focus Moon 3, Detail Mode');
+              break;
+            case 's':
+              toggleScrollSnap();
+              console.log('Debug: Toggled scroll snap', useJourneyModeStore.getState().isScrollSnapEnabled);
+              break;
+            case 'c':
+              toggleClickToCenter();
+              console.log('Debug: Toggled click-to-center', useJourneyModeStore.getState().isClickToCenterEnabled);
+              break;
+            default:
+              break;
+          }
         }
-      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [toggleDebugMode, setFocusedMoonIndex, setMode, toggleScrollSnap, toggleClickToCenter]);
+  }, [toggleDebugMode, setFocusedMoonIndex, setMode, toggleScrollSnap, toggleClickToCenter, triggerCutscene]);
+
+  const currentGlobalMode = useJourneyModeStore((s) => s.mode);
 
   return (
     <>
@@ -145,7 +181,7 @@ function App() {
           letterSpacing: '0.08em', 
           pointerEvents: 'none' 
         }}>
-          MODE: {useJourneyModeStore((s) => s.mode).toUpperCase()}
+          MODE: {currentGlobalMode.toUpperCase()}
           {isDebugMode ? ' (DEBUG)' : ''}
           {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
           {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}

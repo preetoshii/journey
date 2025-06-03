@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 
 /*
   RotatingSubtitle.tsx
@@ -48,6 +49,7 @@ export const RotatingSubtitle: React.FC<{
   const [visible, setVisible] = React.useState(true);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const fadeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
 
   React.useEffect(() => {
     // Start with the initial delay for staggering
@@ -74,8 +76,8 @@ export const RotatingSubtitle: React.FC<{
   return (
     <motion.div
       style={{ minHeight: 56, marginTop: 18, padding: '0 64px', width: '80%' }}
-      animate={{ opacity: dimmed ? 0 : 1 }}
-      transition={{ opacity: { duration: dimmed ? 0.56 : 0.28, ease: 'easeInOut' } }}
+      animate={{ opacity: isCutsceneActive ? 0 : (dimmed ? 0 : 1) }}
+      transition={{ opacity: { duration: isCutsceneActive ? 0.56 : (dimmed ? 0.56 : 0.28), ease: 'easeInOut' } }}
     >
       <AnimatePresence mode="wait">
         {visible && (

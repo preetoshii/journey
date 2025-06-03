@@ -33,6 +33,7 @@
 
 import React from 'react';
 import { MoonVisualizer } from '../Moon/MoonVisualizer';
+import AccomplishmentCutsceneOverlay from '../Cutscene/AccomplishmentCutsceneOverlay';
 
 const MoonLayer: React.FC = () => (
   <div
@@ -44,10 +45,11 @@ const MoonLayer: React.FC = () => (
       height: '100vh',
       zIndex: 10,
       pointerEvents: 'none', // moons handle their own pointer events
-      mixBlendMode: 'screen',
+      // mixBlendMode: 'screen', // This was on MoonLayer, AccomplishmentCutsceneOverlay might need its own or this might affect it
     }}
   >
     <MoonVisualizer />
+    <AccomplishmentCutsceneOverlay />
   </div>
 );
 

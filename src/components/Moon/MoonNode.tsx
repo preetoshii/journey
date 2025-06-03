@@ -77,6 +77,7 @@ function hexToRgba(hex: string, alpha: number) {
  */
 export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
   const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling } = useJourneyModeStore();
+  const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
   // --- Derived state ---
   const { positions, title, subtitle, color } = node; // Removed role as it's always 'moon'
   const currentLevel = 'level1'; // Maintained for position data structure
@@ -259,7 +260,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
             opacity: Boolean(isDot) ? 0 : 1
           }}
           animate={{
-            top: CIRCLE_L1_SIZE / 2,
+            top: CIRCLE_L1_SIZE / 2 + (isCutsceneActive ? 38 : 0),
             transform: 'translate(-50%, -50%)',
             opacity: Boolean(isDot) ? 0 : 1
           }}

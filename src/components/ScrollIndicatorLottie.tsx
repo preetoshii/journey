@@ -7,16 +7,18 @@ import { useJourneyModeStore } from '../store/useJourneyModeStore';
 interface StoreState {
   mode: 'overview' | 'detail';
   isMoonHovered: boolean;
+  isCutsceneActive: boolean;
   // Add other state properties if accessed here, otherwise this is fine
 }
 
 const ScrollIndicatorLottie: React.FC = () => {
   const mode = useJourneyModeStore((state: StoreState) => state.mode);
   const isMoonHovered = useJourneyModeStore((state: StoreState) => state.isMoonHovered);
+  const isCutsceneActive = useJourneyModeStore((state: StoreState) => state.isCutsceneActive);
 
   return (
     <AnimatePresence>
-      {mode === 'overview' && !isMoonHovered && (
+      {mode === 'overview' && !isMoonHovered && !isCutsceneActive && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

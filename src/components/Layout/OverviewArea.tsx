@@ -40,6 +40,7 @@ import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 
 const OverviewArea: React.FC = () => {
   const mode = useJourneyModeStore((s) => s.mode);
+  const isCutsceneActive = useJourneyModeStore((s) => s.isCutsceneActive);
   return (
     <div
       style={{
@@ -62,7 +63,7 @@ const OverviewArea: React.FC = () => {
           alignItems: 'center',
           zIndex: 10,
         }}
-        animate={{ opacity: mode === 'detail' ? 0 : 1 }}
+        animate={{ opacity: isCutsceneActive ? 0 : (mode === 'detail' ? 0 : 1) }}
         transition={{ duration: 0.5, ease: 'easeInOut' }}
       >
         {/* Animated North Star Icon */}
