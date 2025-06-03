@@ -49,7 +49,51 @@ export interface JourneyModeState {
   updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
 }
 
-export const useJourneyModeStore = create<JourneyModeState>((set, get) => ({
+export interface JourneyModeStore {
+  mode: 'overview' | 'detail';
+  focusedMoonIndex: number; // 0 for sun/overview, 1-3 for moons in detail
+  isDebugMode: boolean;
+  scrollContainer: HTMLDivElement | null;
+  isAutoScrolling: boolean;
+  isScrollSnapEnabled: boolean;
+  isClickToCenterEnabled: boolean;
+  activeCardKey: string | null; // For DetailArea card highlighting
+  isMoonHovered: boolean; // Added for Lottie visibility
+
+  // Cutscene State
+  isCutsceneActive: boolean;
+  currentAccomplishments: Accomplishment[] | null;
+  cutsceneStep: CutsceneStep;
+  currentAnimatingAccomplishmentIndex: number;
+  pendingGoalUpdates: Record<string, { progressBoost: number; newActions: GoalAction[] }> | null;
+  nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
+
+  // Actions
+  setMode: (mode: 'overview' | 'detail') => void;
+  setFocusedMoonIndex: (index: number) => void;
+  toggleDebugMode: () => void;
+  setScrollContainer: (container: HTMLDivElement | null) => void;
+  setIsAutoScrolling: (isScrolling: boolean) => void;
+  toggleScrollSnap: () => void;
+  toggleClickToCenter: () => void;
+  setActiveCardKey: (key: string | null) => void;
+  setIsMoonHovered: (isHovered: boolean) => void; // Added action
+  
+  // Cutscene Actions
+  triggerCutscene: (accomplishments: Accomplishment[]) => void;
+  _prepareCutsceneState: (accomplishments: Accomplishment[]) => void;
+  _applyPendingChanges: () => void;
+  _endCutscene: () => void;
+  setCutsceneStep: (step: CutsceneStep) => void;
+  setCurrentAnimatingAccomplishmentIndex: (index: number) => void;
+  updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
+
+  pulseMoons: Record<string, boolean>;
+  triggerMoonPulse: (moonId: string) => void;
+  resetMoonPulse: (moonId: string) => void;
+}
+
+export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   mode: 'overview',
   focusedMoonIndex: 0,
   isDebugMode: false,
@@ -67,6 +111,16 @@ export const useJourneyModeStore = create<JourneyModeState>((set, get) => ({
   currentAnimatingAccomplishmentIndex: -1,
   pendingGoalUpdates: null,
   nodes: rawNodes, // Initialize nodes from the imported data
+
+  pulseMoons: {},
+  triggerMoonPulse: (moonId) => set(state => ({
+    pulseMoons: { ...state.pulseMoons, [moonId]: true }
+  })),
+  resetMoonPulse: (moonId) => set(state => {
+    const newPulseMoons = { ...state.pulseMoons };
+    delete newPulseMoons[moonId];
+    return { pulseMoons: newPulseMoons };
+  }),
 
   // Action Implementations
   setMode: (mode) => set({ mode }),

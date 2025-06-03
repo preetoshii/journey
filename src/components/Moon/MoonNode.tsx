@@ -78,6 +78,8 @@ function hexToRgba(hex: string, alpha: number) {
 export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
   const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling } = useJourneyModeStore();
   const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
+  const pulseMoons = useJourneyModeStore(s => s.pulseMoons);
+  const resetMoonPulse = useJourneyModeStore(s => s.resetMoonPulse);
   // --- Derived state ---
   const { positions, title, subtitle, color } = node; // Removed role as it's always 'moon'
   const currentLevel = 'level1'; // Maintained for position data structure
@@ -92,6 +94,27 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
   // const [wasInLevel1, setWasInLevel1] = React.useState(true); // Not needed anymore
   const [arcActive, setArcActive] = React.useState(false);
   
+  // Pulse animation state (store-driven)
+  const [pulse, setPulse] = React.useState(false);
+
+  // Listen for pulse trigger from store
+  React.useEffect(() => {
+    if (pulseMoons[node.id]) {
+      setPulse(true);
+      // Reset the store pulse after animation
+      const t = setTimeout(() => {
+        setPulse(false);
+        resetMoonPulse(node.id);
+      }, 320);
+      return () => clearTimeout(t);
+    }
+  }, [pulseMoons, node.id, resetMoonPulse]);
+
+  // Log moonOrderIndex on mount
+  React.useEffect(() => {
+    console.log(`[MoonNode] moonOrderIndex:`, moonOrderIndex);
+  }, [moonOrderIndex]);
+
   // Effect to handle focus changes for tap animation
   React.useEffect(() => {
     if (isFocused) {
@@ -187,6 +210,28 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
       }}
       data-moon-node='true' // Simplified data attribute
     >
+      {/* Pulse effect overlay */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: '100%',
+          height: '100%',
+          borderRadius: '50%',
+          pointerEvents: 'none',
+          zIndex: 2,
+          background: 'radial-gradient(circle, rgba(255,241,200,0.7) 0%, rgba(255,241,200,0.12) 85%, rgba(255,241,200,0) 100%)',
+        }}
+        animate={{
+          opacity: pulse ? 1 : 0,
+          scale: pulse ? 1.32 : 1,
+        }}
+        transition={{
+          opacity: { duration: 0.18 },
+          scale: { duration: 0.32, type: 'spring', stiffness: 300, damping: 18 },
+        }}
+      />
       {/* Moon Container - This is the primary content now */}
       <motion.div
         style={{
@@ -196,6 +241,12 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+        }}
+        animate={{
+          scale: pulse ? 1.10 : 1
+        }}
+        transition={{
+          scale: { duration: 0.32, type: 'spring', stiffness: 300, damping: 18 },
         }}
       >
         {/* Progress Bar */}

@@ -31,26 +31,30 @@
 */
 
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { MoonVisualizer } from '../Moon/MoonVisualizer';
 import AccomplishmentCutsceneOverlay from '../Cutscene/AccomplishmentCutsceneOverlay';
 
-const MoonLayer: React.FC = () => (
-  <div
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      zIndex: 10,
-      pointerEvents: 'none', // moons handle their own pointer events
-      mixBlendMode: 'screen',
-    }}
-  >
-    <MoonVisualizer />
-    <AccomplishmentCutsceneOverlay />
-  </div>
-);
+const MoonLayer: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 10,
+        pointerEvents: 'none', // moons handle their own pointer events
+        mixBlendMode: 'screen',
+      }}
+    >
+      <MoonVisualizer />
+      <AccomplishmentCutsceneOverlay containerRef={containerRef} />
+    </div>
+  );
+};
 
 export default MoonLayer; 

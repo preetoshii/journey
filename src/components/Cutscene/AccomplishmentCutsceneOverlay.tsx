@@ -10,25 +10,79 @@ const StarSVG: React.FC = () => (
   </svg>
 );
 
-const CutsceneStars: React.FC = () => {
+interface AccomplishmentCutsceneOverlayProps {
+  containerRef: React.RefObject<HTMLDivElement>;
+}
+
+const CutsceneStars: React.FC<{ containerRef: React.RefObject<HTMLDivElement> }> = ({ containerRef }) => {
   const accomplishments = useJourneyModeStore(s => s.currentAccomplishments) || [];
   const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
+  const nodes = useJourneyModeStore(s => s.nodes);
+  const triggerMoonPulse = useJourneyModeStore(s => s.triggerMoonPulse);
 
+  // Get container size
+  const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
+  React.useLayoutEffect(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerSize({ width: rect.width, height: rect.height });
+    }
+  }, [containerRef, isCutsceneActive]);
+
+  // Track which stars have activated their flight
+  const [activatedStars, setActivatedStars] = React.useState<Set<number>>(new Set());
+  // Track which stars have finished their flight (for pulse/fade)
+  const [flownStars, setFlownStars] = React.useState<Set<number>>(new Set());
+  // Track which stars have faded out (for AnimatePresence)
+  const [fadedStars, setFadedStars] = React.useState<Set<number>>(new Set());
+
+  // After 1.5s, start activating stars one by one
   React.useEffect(() => {
     if (isCutsceneActive && accomplishments.length > 0) {
-      console.log('🎯 Cutscene Accomplishments:', JSON.stringify(accomplishments, null, 2));
+      const timeouts: NodeJS.Timeout[] = [];
+      accomplishments.forEach((_, index) => {
+        const timeout = setTimeout(() => {
+          setActivatedStars(prev => new Set([...prev, index]));
+        }, 1500 + (index * 200));
+        timeouts.push(timeout);
+      });
+      return () => {
+        timeouts.forEach(clearTimeout);
+        setActivatedStars(new Set());
+        setFlownStars(new Set());
+        setFadedStars(new Set());
+      };
     }
   }, [isCutsceneActive, accomplishments]);
 
   if (!isCutsceneActive || accomplishments.length === 0) return null;
 
   return (
-    <>
+    <AnimatePresence>
       {accomplishments.map((acc, i) => {
+        if (fadedStars.has(i)) return null;
         const total = accomplishments.length;
-        const spacing = 48; // px between stars
+        const spacing = 48;
         const groupWidth = (total - 1) * spacing;
         const xOffset = (i * spacing) - groupWidth / 2;
+        const isFlying = activatedStars.has(i);
+        const hasFlown = flownStars.has(i);
+        const targetMoon = nodes.find(n => n.id === acc.goals[0].goalId);
+        const targetX = targetMoon ? targetMoon.positions.level1.x : undefined;
+        const targetY = targetMoon ? targetMoon.positions.level1.y : undefined;
+        const flyX = isFlying ? containerSize.width / 2 + (targetX ?? 0) : undefined;
+        const flyY = isFlying ? containerSize.height / 2 + (targetY ?? 0) : undefined;
+
+        // When flight completes, trigger pulse and fade out
+        const handleFlightComplete = () => {
+          if (!flownStars.has(i)) {
+            setFlownStars(prev => new Set([...prev, i]));
+            if (targetMoon) triggerMoonPulse(targetMoon.id);
+            // Start fade out after a short delay (so pulse is visible as star lands)
+            setTimeout(() => setFadedStars(prev => new Set([...prev, i])), 80);
+          }
+        };
+
         return (
           <motion.div
             key={acc.id}
@@ -37,19 +91,35 @@ const CutsceneStars: React.FC = () => {
               y: '-60px',
               opacity: 0
             }}
-            animate={{
+            animate={isFlying ? {
+              x: flyX,
+              y: flyY,
+              opacity: 1
+            } : {
               x: `calc(50vw + ${xOffset}px)` ,
               y: '22vh',
               opacity: 1
             }}
+            exit={{ opacity: 0, scale: 0.7, transition: { duration: 0.32 } }}
             transition={{
               delay: 1 + i * 0.18,
-              duration: 0.7,
+              duration: isFlying ? 1.1 : 0.7,
               type: 'spring',
               bounce: 0.3
             }}
+            onUpdate={(latest) => {
+              // Detect when the star is at its target (flight complete)
+              if (isFlying && !hasFlown && flyX !== undefined && flyY !== undefined) {
+                const x = typeof latest.x === 'number' ? latest.x : 0;
+                const y = typeof latest.y === 'number' ? latest.y : 0;
+                // If close enough to target, consider flight complete
+                if (Math.abs(x - flyX) < 2 && Math.abs(y - flyY) < 2) {
+                  handleFlightComplete();
+                }
+              }
+            }}
             style={{
-              position: 'fixed',
+              position: 'absolute',
               zIndex: 2002,
               pointerEvents: 'none',
               width: STAR_SIZE,
@@ -68,11 +138,11 @@ const CutsceneStars: React.FC = () => {
           </motion.div>
         );
       })}
-    </>
+    </AnimatePresence>
   );
 };
 
-const AccomplishmentCutsceneOverlay: React.FC = () => {
+const AccomplishmentCutsceneOverlay: React.FC<AccomplishmentCutsceneOverlayProps> = ({ containerRef }) => {
   const isCutsceneActive = useJourneyModeStore((state) => state.isCutsceneActive);
   const cutsceneStep = useJourneyModeStore((state) => state.cutsceneStep);
 
@@ -112,7 +182,7 @@ const AccomplishmentCutsceneOverlay: React.FC = () => {
     <AnimatePresence>
       {isCutsceneActive && (
         <>
-          <CutsceneStars />
+          <CutsceneStars containerRef={containerRef} />
         </>
       )}
     </AnimatePresence>
