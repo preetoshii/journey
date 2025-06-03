@@ -29,11 +29,9 @@ export type NodeRole = "sun" | "moon";
 
 // New GoalAction interface
 export interface GoalAction {
-  id: string; // Unique ID for this action/accomplishment entry
-  type: 'step' | 'accomplishment'; // Differentiate types
-  date: string; // Date acquired/created
-  title: string; // For accomplishments: Accomplishment.title; For steps: the existing text
-  recap?: string; // Optional: For accomplishments: Accomplishment.recap
+  date: string;
+  title: string;
+  recap?: string;
 }
 
 export interface ZoomNode {

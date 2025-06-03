@@ -203,7 +203,12 @@ export const DetailScreenConnection: React.FC<{ goal: ZoomNode }> = ({ goal }) =
 
 // Moments Screen: Shows key moments and achievements
 export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
-  const actions = goal.recentActions || [];
+  const actions = [...(goal.recentActions || [])].sort((a, b) => {
+    // Parse as dates, fallback to string comparison if needed
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB.getTime() - dateA.getTime();
+  });
   const [showAll, setShowAll] = useState(false);
 
   if (actions.length === 0) {
@@ -259,7 +264,7 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
             fontWeight: 400,
             margin: 0,
             textAlign: 'left',
-          }}>{action.text}</span>
+          }}>{action.title}</span>
         </div>
       ))}
       {actions.length > 4 && !showAll && (

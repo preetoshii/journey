@@ -148,7 +148,7 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
     console.log('[Cutscene] Preparing state for accomplishments:', accomplishments);
     const newPendingGoalUpdates: Record<string, { progressBoost: number; newActions: GoalAction[] }> = {};
     const currentNodes = get().nodes;
-    let visualProgressUpdates: Array<{ nodeId: string; newVisualProgress: number }> = [];
+    // let visualProgressUpdates: Array<{ nodeId: string; newVisualProgress: number }> = []; // Not strictly needed if we update nodes directly
 
     accomplishments.forEach(acc => {
       acc.goals.forEach(goalMapping => {
@@ -157,8 +157,6 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
         }
         newPendingGoalUpdates[goalMapping.goalId].progressBoost += goalMapping.innerWorkAmount;
         newPendingGoalUpdates[goalMapping.goalId].newActions.push({
-          id: `acc_${acc.id}_${goalMapping.goalId}`,
-          type: 'accomplishment',
           date: new Date().toLocaleDateString(), // Placeholder date
           title: acc.title,
           recap: acc.recap,
@@ -166,63 +164,70 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
       });
     });
 
-    // Placeholder for visually reducing progress bars
-    // This currently modifies the actual progress in the store's copy of nodes.
-    // We'll need a more robust way if this direct modification isn't desired for the "real" data yet.
     const updatedNodes = currentNodes.map(node => {
-      if (newPendingGoalUpdates[node.id]) {
-        const currentProgress = node.progress || 0;
-        // Example: reduce by 10% of the boost, or a fixed small amount like 5, ensure not < 0
-        const reduction = Math.min(currentProgress, Math.max(1, newPendingGoalUpdates[node.id].progressBoost * 0.1)); 
+      let tempNode = { ...node };
+      if (newPendingGoalUpdates[tempNode.id]) {
+        // Visually reduce progress
+        const currentProgress = tempNode.progress || 0;
+        const reduction = Math.min(currentProgress, Math.max(1, newPendingGoalUpdates[tempNode.id].progressBoost * 0.1));
         const newVisualProgress = Math.max(0, currentProgress - reduction);
-        console.warn(`[Cutscene] Visually reducing progress for ${node.id} from ${currentProgress} to ${newVisualProgress} (temporary for cutscene). Boost is ${newPendingGoalUpdates[node.id].progressBoost}`);
-        visualProgressUpdates.push({ nodeId: node.id, newVisualProgress });
-        return { ...node, progress: newVisualProgress };
+        console.warn(`[Cutscene] Visually reducing progress for ${tempNode.id} from ${currentProgress} to ${newVisualProgress}. Boost is ${newPendingGoalUpdates[tempNode.id].progressBoost}`);
+        tempNode.progress = newVisualProgress;
+
+        // Immediately merge new actions
+        const originalNode = rawNodes.find(rn => rn.id === tempNode.id); // Get original for existing actions
+        const existingActions = originalNode?.recentActions || [];
+        tempNode.recentActions = [...existingActions, ...newPendingGoalUpdates[tempNode.id].newActions];
+        console.log(`[Cutscene] Immediately adding new actions to ${tempNode.id}. Total actions: ${tempNode.recentActions.length}`);
       }
-      return node;
+      return tempNode;
     });
 
     set({ pendingGoalUpdates: newPendingGoalUpdates, nodes: updatedNodes });
-    console.log('[Cutscene] Pending goal updates calculated:', newPendingGoalUpdates);
+    console.log('[Cutscene] Pending goal updates calculated (actions merged immediately):', newPendingGoalUpdates);
+    console.log('[Cutscene] Nodes after immediate action merge:', get().nodes);
+    // Log recentActions for each affected node
+    updatedNodes.forEach(node => {
+      if (newPendingGoalUpdates[node.id]) {
+        console.log(`[Cutscene] Recent actions for ${node.id}:`, node.recentActions);
+      }
+    });
   },
   _applyPendingChanges: () => {
-    console.log('[Cutscene] Applying pending changes...');
+    console.log('[Cutscene] Applying pending progress changes...');
     const { pendingGoalUpdates, nodes } = get();
-    if (!pendingGoalUpdates) return;
+    if (!pendingGoalUpdates) {
+      console.log('[Cutscene] No pending updates to apply.');
+      return;
+    }
 
     const finalNodes = nodes.map(node => {
       if (pendingGoalUpdates[node.id]) {
-        const currentProgress = node.progress || 0; // This is the visually reduced progress
-        // To get original progress before visual reduction, we'd need to store it or recalculate the reduction.
-        // For now, let's assume we add the full boost to the visually reduced value.
-        // This means the initial visual reduction logic needs to be precise based on how final progress is calculated.
-        // A better way: Store original progress, apply full boost to original for final value.
-        // Let's adjust _prepareCutsceneState to be smarter or simplify for now.
-        // For now, assuming node.progress is the *visually reduced* one.
-        // The boost was calculated on the *original* progress.
-        // To fix: _prepareCutsceneState should store original progress if it modifies it directly.
-        // TEMPORARY SIMPLIFICATION: Assume 'node.progress' is the one we apply full boost to from pending.
-
-        // Re-calculate original progress to correctly apply the boost
-        // This is a bit of a hack due to modifying 'nodes' directly for visual effect.
-        // Ideally, MoonNode would take a displayProgress prop.
-        let originalProgress = node.progress || 0; // This is currently the visually reduced progress.
-        // Find this node in the *original* rawNodes to get its true original progress
-        const originalNode = rawNodes.find(rn => rn.id === node.id);
-        if (originalNode) {
-            originalProgress = originalNode.progress || 0;
+        // Recalculate original progress to correctly apply the boost.
+        // This assumes 'node.progress' is currently the visually reduced progress.
+        let originalProgress = 0;
+        const originalNodeFromRaw = rawNodes.find(rn => rn.id === node.id);
+        if (originalNodeFromRaw) {
+          originalProgress = originalNodeFromRaw.progress || 0;
+        } else {
+          // Fallback if node not in rawNodes (should not happen with current setup)
+          // or if we want to be super safe, we could try to reverse the reduction
+          // but referencing original rawNodes is safer.
+          console.warn(`[Cutscene] Original node ${node.id} not found in rawNodes for progress calculation. Using current visually reduced progress as base for boost.`);
+          originalProgress = node.progress || 0; // This will be the visually reduced one
         }
-
-        const newFinalProgress = Math.min(100, originalProgress + pendingGoalUpdates[node.id].progressBoost);
-        const newActions = [...(originalNode?.recentActions || []), ...pendingGoalUpdates[node.id].newActions];
         
-        console.log(`[Cutscene] Applying to ${node.id}: old progress ${originalProgress}, boost ${pendingGoalUpdates[node.id].progressBoost}, new final progress ${newFinalProgress}`);
-        return { ...node, progress: newFinalProgress, recentActions: newActions };
+        const newFinalProgress = Math.min(100, originalProgress + pendingGoalUpdates[node.id].progressBoost);
+        
+        console.log(`[Cutscene] Applying progress to ${node.id}: original progress ${originalProgress}, boost ${pendingGoalUpdates[node.id].progressBoost}, new final progress ${newFinalProgress}. Current visual progress was ${node.progress}`);
+        // newActions are already merged in _prepareCutsceneState, so only update progress.
+        // Ensure recentActions from the node (which already has new ones) is preserved.
+        return { ...node, progress: newFinalProgress, recentActions: node.recentActions };
       }
       return node;
     });
     set({ pendingGoalUpdates: null, nodes: finalNodes });
-    console.log("[Cutscene] Final node states after applying changes:", get().nodes);
+    console.log("[Cutscene] Final node states after applying progress changes:", get().nodes);
   },
   _endCutscene: () => {
     console.log('[Cutscene] Ending cutscene.');

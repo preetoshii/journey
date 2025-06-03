@@ -37,11 +37,8 @@
 import React, { useEffect, useRef } from 'react';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import { detailScreenTypes } from './detailScreenTypes';
-import { nodes as rawNodes } from '../Moon/MoonVisualizer';
 import type { ZoomNode } from '../../types';
 import { motion } from 'framer-motion';
-
-const moonNodes = rawNodes.filter((g: ZoomNode) => g.role === 'moon');
 
 const DetailArea: React.FC = () => {
   const { 
@@ -54,6 +51,10 @@ const DetailArea: React.FC = () => {
     setIsAutoScrolling,
     isClickToCenterEnabled
   } = useJourneyModeStore();
+
+  // Get nodes from store and filter for moons inside the component (fixes invalid hook call)
+  const storeNodes = useJourneyModeStore(s => s.nodes);
+  const moonNodes = storeNodes.filter((g: ZoomNode) => g.role === 'moon');
 
   const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
