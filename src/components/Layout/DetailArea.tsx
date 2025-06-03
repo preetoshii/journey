@@ -49,7 +49,8 @@ const DetailArea: React.FC = () => {
     activeCardKey,
     setActiveCardKey,
     setIsAutoScrolling,
-    isClickToCenterEnabled
+    isClickToCenterEnabled,
+    focusedMoonIndex
   } = useJourneyModeStore();
 
   // Get nodes from store and filter for moons inside the component (fixes invalid hook call)
@@ -142,8 +143,16 @@ const DetailArea: React.FC = () => {
     }
   };
 
+  const isContentVisible = mode === 'detail' && focusedMoonIndex > 0;
+
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ 
+        opacity: isContentVisible ? 1 : 0,
+        pointerEvents: isContentVisible ? 'auto' : 'none'
+      }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
       style={{
         display: 'flex',
         flexDirection: 'row',
@@ -226,7 +235,7 @@ const DetailArea: React.FC = () => {
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
