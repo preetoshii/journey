@@ -327,8 +327,6 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
                 repeatType: 'loop',
               }}
               fill={color}
-              stroke="#fff"
-              strokeWidth={2}
               style={{ filter: `drop-shadow(0 0 8px ${glowColor})` }}
             />
           )

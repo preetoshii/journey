@@ -4,6 +4,11 @@ import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 
 const STAR_SIZE = 28;
 
+// Configurable delay before triggering the progress bar boost (in ms)
+const BOOST_DELAY_MS = 420;
+// Configurable duration for the progress bar boost animation (in ms)
+const BOOST_ANIMATION_DURATION_MS = 1100;
+
 const StarSVG: React.FC = () => (
   <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
@@ -35,6 +40,31 @@ const CutsceneStars: React.FC<{ containerRef: React.RefObject<HTMLDivElement> }>
   const [flownStars, setFlownStars] = React.useState<Set<number>>(new Set());
   // Track which stars have faded out (for AnimatePresence)
   const [fadedStars, setFadedStars] = React.useState<Set<number>>(new Set());
+
+  // Log when all stars have finished their flight
+  React.useEffect(() => {
+    let boostTimeout: NodeJS.Timeout | null = null;
+    let endCutsceneTimeout: NodeJS.Timeout | null = null;
+    if (
+      isCutsceneActive &&
+      accomplishments.length > 0 &&
+      flownStars.size === accomplishments.length
+    ) {
+      console.log('[Cutscene] All stars have finished their flight!');
+      // Trigger the progress bar boost after a delay
+      boostTimeout = setTimeout(() => {
+        useJourneyModeStore.getState()._applyPendingChanges();
+        // End the cutscene after the boost animation duration
+        endCutsceneTimeout = setTimeout(() => {
+          useJourneyModeStore.getState()._endCutscene();
+        }, BOOST_ANIMATION_DURATION_MS);
+      }, BOOST_DELAY_MS);
+    }
+    return () => {
+      if (boostTimeout) clearTimeout(boostTimeout);
+      if (endCutsceneTimeout) clearTimeout(endCutsceneTimeout);
+    };
+  }, [flownStars, accomplishments.length, isCutsceneActive]);
 
   // After 1.5s, start activating stars one by one
   React.useEffect(() => {
