@@ -40,6 +40,8 @@ interface MoonAnimatedBackgroundProps {
     is not reflective of the current implementation. The current version has two layers
     (color and rotating image) and the image has a back-and-forth rotation with scaling.
 */
+
+
 export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
   color,
   active,
@@ -49,6 +51,16 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
   hideRotatingImage = false,
   hideRotatingImageDelay = 0,
 }) => {
+  // Ref for the masked div
+  const maskDivRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (maskDivRef.current) {
+      maskDivRef.current.style.setProperty('mask-mode', 'luminance');
+      maskDivRef.current.style.setProperty('-webkit-mask-mode', 'luminance');
+    }
+  }, [rotatingImageUrl]);
+
   return (
     <motion.div
       initial={false}
@@ -65,18 +77,18 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
         width: size,
         height: size,
         transform: 'translate(-50%, -50%)',
-        zIndex: 0, // Ensure it's behind the moon circle
+        zIndex: 0,
         pointerEvents: 'none',
         borderRadius: '50%',
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        mixBlendMode: 'screen',
       }}
     >
-      {/* Layer 1: Flat color */}
-      <div
+      {/* Masked base color layer */}
+      <motion.div
+        ref={maskDivRef}
         style={{
           position: 'absolute',
           top: 0,
@@ -86,25 +98,15 @@ export const MoonAnimatedBackground: React.FC<MoonAnimatedBackgroundProps> = ({
           background: color,
           borderRadius: '50%',
           zIndex: 1,
-        }}
-      />
-      {/* Layer 3: Rotating overlay (now static) */}
-      <motion.img
-        src={rotatingImageUrl}
-        alt="Rotating overlay"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          borderRadius: '50%',
-          zIndex: 3,
+          WebkitMaskImage: `url(${rotatingImageUrl})`,
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskSize: 'cover',
+          maskImage: `url(${rotatingImageUrl})`,
+          maskRepeat: 'no-repeat',
+          maskSize: 'cover',
           pointerEvents: 'none',
           userSelect: 'none',
         }}
-        draggable={false}
         animate={{ 
           rotate: [0, 30, -30, 0],
           scale: [1, 1.3, 1],
