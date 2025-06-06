@@ -71,6 +71,26 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// Helper to get phase info based on progress
+function getPhaseInfo(progress: number) {
+  if (progress <= 33.33) {
+    return {
+      name: 'DISCOVERY STAGE',
+      color: '#A3B6FF', // Blueish
+    };
+  }
+  if (progress <= 66.66) {
+    return {
+      name: 'ACTION STAGE',
+      color: '#FFB74D', // Orangeish
+    };
+  }
+  return {
+    name: 'INTEGRATION STAGE',
+    color: '#81C784', // Greenish
+  };
+}
+
 /**
  * MoonNode
  * Renders a single moon node with animation and click logic.
@@ -160,18 +180,20 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
       }
 
       if (scrollContainer && node.id) {
-        const detailElement = document.getElementById(node.id);
-        if (detailElement) {
-          setIsAutoScrolling(true); // Set flag before starting scroll
-          detailElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          console.log(`Scrolling to ${node.id}`);
+        // Find the first detail screen card for this moon
+        const firstCardKey = `${node.id}-progress`; // 'progress' is the first screen type
+        const firstCardElement = document.querySelector(`[data-card-key="${firstCardKey}"]`);
+        
+        if (firstCardElement) {
+          setIsAutoScrolling(true);
+          firstCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.log(`Scrolling to first card of ${node.id}`);
 
-          // Reset the flag after a delay (adjust duration as needed for smooth scroll)
           setTimeout(() => {
             setIsAutoScrolling(false);
-          }, 1000); // 1 second, adjust if scroll takes longer/shorter
+          }, 1000);
         } else {
-          console.warn(`Detail element with ID ${node.id} not found for scrolling.`);
+          console.warn(`First detail card for moon ${node.id} not found for scrolling.`);
         }
       }
     }
@@ -340,7 +362,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
               opacity: 0.85
             }}
           >
-            QUEST
+            {getPhaseInfo(node.progress || 0).name}
           </div>
           <motion.h3
             className="moon-title" // Changed class name
