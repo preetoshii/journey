@@ -40,7 +40,11 @@ import { detailScreenTypes } from './detailScreenTypes';
 import type { ZoomNode } from '../../types';
 import { motion } from 'framer-motion';
 
-const DetailArea: React.FC = () => {
+interface DetailAreaProps {
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+const DetailArea: React.FC<DetailAreaProps> = ({ scrollContainerRef }) => {
   const { 
     mode, 
     setFocusedMoonIndex, 
@@ -59,61 +63,71 @@ const DetailArea: React.FC = () => {
 
   const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
+  // New scroll-based focus logic
   useEffect(() => {
-    if (mode !== 'detail' || isAutoScrolling || isDebugMode) {
-      if (mode === 'overview' && activeCardKey !== null) {
-        setActiveCardKey(null);
-      }
+    const container = scrollContainerRef.current;
+    if (!container || mode !== 'detail' || isAutoScrolling) {
       return;
     }
 
-    const observerOptions = {
-      root: null,
-      rootMargin: '-40% 0px -40% 0px',
-      threshold: 0.5,
-    };
+    let throttleTimeout: NodeJS.Timeout | null = null;
 
-    let currentMostVisibleCardKey: string | null = null;
-    let maxRatio = 0;
+    const handleScroll = () => {
+      if (isAutoScrolling) return;
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach(entry => {
-        const cardKey = entry.target.getAttribute('data-card-key');
-        if (!cardKey) return;
+      const viewportCenter = container.scrollTop + container.clientHeight / 2;
+      const containerTopInViewport = container.getBoundingClientRect().top;
+      
+      let closestCardKey: string | null = null;
+      let minDistance = Infinity;
 
-        if (entry.isIntersecting && entry.intersectionRatio >= maxRatio) {
-          if (entry.intersectionRatio > maxRatio || (entry.intersectionRatio === maxRatio && cardKey !== activeCardKey)) {
-            maxRatio = entry.intersectionRatio;
-            currentMostVisibleCardKey = cardKey;
+      cardRefs.current.forEach((cardEl, key) => {
+        if (cardEl) {
+          // This is the robust way to calculate the element's top position
+          // relative to the scrollable container's content.
+          const cardTopInViewport = cardEl.getBoundingClientRect().top;
+          const absoluteCardTop = cardTopInViewport - containerTopInViewport + container.scrollTop;
+
+          const distance = Math.abs(viewportCenter - absoluteCardTop);
+
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestCardKey = key;
           }
         }
       });
 
-      if (currentMostVisibleCardKey && currentMostVisibleCardKey !== activeCardKey) {
-        setActiveCardKey(currentMostVisibleCardKey);
+      if (closestCardKey && closestCardKey !== useJourneyModeStore.getState().activeCardKey) {
+        setActiveCardKey(closestCardKey);
         
-        const moonId = currentMostVisibleCardKey.split('-')[0];
+        const moonId = (closestCardKey as string).split('-')[0];
         const goalIndex = moonNodes.findIndex(goal => goal.id === moonId);
         if (goalIndex !== -1 && useJourneyModeStore.getState().focusedMoonIndex !== goalIndex + 1) {
           setFocusedMoonIndex(goalIndex + 1);
-          console.log(`Card Intersection: Focused moon ${goalIndex + 1} (${moonId}) via card ${currentMostVisibleCardKey}`);
         }
       }
-      maxRatio = 0; 
     };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    cardRefs.current.forEach(cardElement => {
-      if (cardElement) {
-        observer.observe(cardElement);
+    const throttledScrollHandler = () => {
+      if (!throttleTimeout) {
+        throttleTimeout = setTimeout(() => {
+          handleScroll();
+          throttleTimeout = null;
+        }, 100); // Throttle to run at most every 100ms
       }
-    });
+    };
+
+    container.addEventListener('scroll', throttledScrollHandler);
+    // Initial check on mount
+    handleScroll();
 
     return () => {
-      observer.disconnect();
+      container.removeEventListener('scroll', throttledScrollHandler);
+      if (throttleTimeout) {
+        clearTimeout(throttleTimeout);
+      }
     };
-  }, [mode, isDebugMode, isAutoScrolling, setActiveCardKey, setFocusedMoonIndex, activeCardKey]);
+  }, [mode, isAutoScrolling, isDebugMode, scrollContainerRef, setActiveCardKey, setFocusedMoonIndex, moonNodes]);
 
   useEffect(() => {
     if (mode === 'overview' && activeCardKey !== null) {
@@ -226,7 +240,7 @@ const DetailArea: React.FC = () => {
                       >
                         {screen.label}
                       </div>
-                      <screen.component goal={goal} />
+                    <screen.component goal={goal} />
                     </motion.div>
                   );
                 })}
