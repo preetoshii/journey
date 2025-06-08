@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import type { ZoomNode } from '../../types';
 // Removed: import { useRef, useEffect } from 'react'; // Not used in this version of DetailScreenMoments
 import styles from './detailScreenTypes.module.css';
+import { motion } from 'framer-motion';
 
 // Progress Screen: Shows progress percentage and transformation phase
 export const DetailScreenProgress: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
@@ -49,7 +50,7 @@ export const DetailScreenProgress: React.FC<{ goal: ZoomNode }> = ({ goal }) => 
           {phaseInfo.name}
         </strong>
         {' '}phase of The BetterUp Process, focused on {phaseInfo.description}.
-      </p>
+          </p>
       <p style={{
         fontFamily: "'Sohne Buch', sans-serif",
         fontSize: '18px',
@@ -174,9 +175,9 @@ export const DetailScreenGrowth: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
                     }}
                   >
                     {option}
-                  </div>
+          </div>
                 ))}
-              </div>
+          </div>
             )}
           </span>
         </span>
@@ -197,7 +198,7 @@ export const DetailScreenConnection: React.FC<{ goal: ZoomNode }> = ({ goal }) =
       maxWidth: '80%', // Prevent text from becoming too wide
     }}>
       {goal.subtitle}
-    </p>
+          </p>
   );
 };
 
@@ -234,22 +235,35 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
         <div
           key={index}
           className={styles['step-subcard']}
-          style={{
+                style={{ 
             border: '1.5px solid #444',
             borderRadius: 24,
             padding: '32px 36px',
             minHeight: 90,
-            display: 'flex',
+                  display: 'flex', 
             flexDirection: 'row',
-            alignItems: 'center',
+                  alignItems: 'center', 
             gap: 36,
             marginBottom: 0,
           }}
         >
           {/* Star SVG */}
-          <svg width={16} height={16} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-            <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
-          </svg>
+              <motion.div
+            animate={{ 
+              y: [0, -6, 0],
+              scale: [1, 1.08, 1]
+            }}
+            transition={{ 
+              duration: 3.5,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatType: "reverse"
+                }}
+              >
+            <svg width={16} height={16} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+              <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
+            </svg>
+              </motion.div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <span style={{
               fontFamily: "'Sohne Buch', sans-serif",

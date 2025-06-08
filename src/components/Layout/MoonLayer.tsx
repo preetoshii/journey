@@ -38,23 +38,23 @@ import AccomplishmentCutsceneOverlay from '../Cutscene/AccomplishmentCutsceneOve
 const MoonLayer: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   return (
-    <div
+  <div
       ref={containerRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: 10,
-        pointerEvents: 'none', // moons handle their own pointer events
-        mixBlendMode: 'screen',
-      }}
-    >
-      <MoonVisualizer />
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      zIndex: 10,
+      pointerEvents: 'none', // moons handle their own pointer events
+      mixBlendMode: 'screen',
+    }}
+  >
+    <MoonVisualizer />
       <AccomplishmentCutsceneOverlay containerRef={containerRef} />
-    </div>
-  );
+  </div>
+);
 };
 
 export default MoonLayer; 

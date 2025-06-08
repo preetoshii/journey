@@ -16,22 +16,32 @@ const StarSVG: React.FC = () => (
 );
 
 interface AccomplishmentCutsceneOverlayProps {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const CutsceneStars: React.FC<{ containerRef: React.RefObject<HTMLDivElement> }> = ({ containerRef }) => {
+const CutsceneStars: React.FC<{ containerRef?: React.RefObject<HTMLDivElement | null> }> = ({ containerRef }) => {
   const accomplishments = useJourneyModeStore(s => s.currentAccomplishments) || [];
   const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
   const nodes = useJourneyModeStore(s => s.nodes);
   const triggerMoonPulse = useJourneyModeStore(s => s.triggerMoonPulse);
 
-  // Get container size
-  const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
+  const [containerSize, setContainerSize] = React.useState({ width: window.innerWidth, height: window.innerHeight });
+
   React.useLayoutEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setContainerSize({ width: rect.width, height: rect.height });
-    }
+    const updateSize = () => {
+      if (containerRef?.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerSize({ width: rect.width, height: rect.height });
+      } else {
+        setContainerSize({ width: window.innerWidth, height: window.innerHeight });
+      }
+    };
+
+    updateSize(); // Initial size
+
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+
   }, [containerRef, isCutsceneActive]);
 
   // Track which stars have activated their flight
@@ -208,14 +218,22 @@ const AccomplishmentCutsceneOverlay: React.FC<AccomplishmentCutsceneOverlayProps
     };
   }, [isCutsceneActive]);
 
+  if (!isCutsceneActive) return null;
+
   return (
-    <AnimatePresence>
-      {isCutsceneActive && (
-        <>
-          <CutsceneStars containerRef={containerRef} />
-        </>
-      )}
-    </AnimatePresence>
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        pointerEvents: 'none',
+        zIndex: 2000,
+      }}
+    >
+      <CutsceneStars containerRef={containerRef} />
+    </div>
   );
 };
 

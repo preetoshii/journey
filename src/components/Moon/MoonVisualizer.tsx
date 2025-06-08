@@ -139,7 +139,7 @@ export const MoonVisualizer = () => {
 
   return (
     <div 
-      style={{
+      style={{ 
         position: 'sticky',
         top: 0,
         width: "100%",

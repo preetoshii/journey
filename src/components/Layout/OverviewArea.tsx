@@ -45,7 +45,7 @@ const OverviewArea: React.FC = () => {
     <div
       style={{
         height: '100vh',
-        width: '100vw',
+        width: '100%',
         position: 'relative',
         zIndex: 1,
         pointerEvents: 'auto',

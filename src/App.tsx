@@ -208,10 +208,10 @@ function App() {
             <OverviewArea />
           </div>
           <MoonVisualizer />
-          <div style={{ gridRow: '2 / 3', gridColumn: '1 / 2' }}>
-            <DetailArea />
+          <div style={{ gridRow: '2 / 2', gridColumn: '1 / 2', position: 'relative' }}>
+            <DetailArea scrollContainerRef={scrollContainerRef} />
           </div>
-        </div>
+      </div>
       </div>
       <ScrollIndicatorLottie />
     </>

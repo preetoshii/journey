@@ -99,7 +99,7 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   isDebugMode: false,
   scrollContainer: null,
   isAutoScrolling: false,
-  isScrollSnapEnabled: true,
+  isScrollSnapEnabled: false,
   isClickToCenterEnabled: false,
   activeCardKey: null,
   isMoonHovered: false, // Initial state
