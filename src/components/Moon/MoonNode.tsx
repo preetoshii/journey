@@ -387,7 +387,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
             {title}
           </motion.h3>
           {Array.isArray(node.goals) && node.goals.length > 0 && (
-            <RotatingSubtitle actions={node.goals.map(g => g.title)} delay={subtitleDelay} dimmed={Boolean(isDimmed)} />
+            <RotatingSubtitle actions={node.goals.filter(g => g.status === 'active').map(g => `Active Goal: ${g.title}`)} delay={subtitleDelay} dimmed={Boolean(isDimmed)} />
           )}
         </motion.div>
       </motion.div>

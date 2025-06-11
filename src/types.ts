@@ -35,6 +35,7 @@ export interface Goal {
   status: GoalStatus;
   date?: string; // Only for completed
   recap?: string;
+  progressText?: string; // Only for active goals, to show progress
 }
 
 export interface ZoomNode {
