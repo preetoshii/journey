@@ -23,6 +23,7 @@ import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import { ArcProgressBar } from './ArcProgressBar';
 import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
 import { RotatingSubtitle } from './RotatingSubtitle';
+import { detailScreenTypes } from '../Layout/detailScreenTypes';
 
 // Props for the MoonNode component
 interface MoonNodeProps {
@@ -180,8 +181,9 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
       }
 
       if (scrollContainer && node.id) {
-        // Find the first detail screen card for this moon
-        const firstCardKey = `${node.id}-moments`; // 'moments' is now the first screen type
+        // Dynamically find the first detail screen key
+        const firstScreenKey = detailScreenTypes[0]?.key;
+        const firstCardKey = `${node.id}-${firstScreenKey}`;
         const firstCardElement = document.querySelector(`[data-card-key="${firstCardKey}"]`);
         
         if (firstCardElement) {
@@ -384,8 +386,8 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
           >
             {title}
           </motion.h3>
-          {Array.isArray(node.recentActions) && node.recentActions.length > 0 && (
-            <RotatingSubtitle actions={node.recentActions.map(a => a.title)} delay={subtitleDelay} dimmed={Boolean(isDimmed)} />
+          {Array.isArray(node.goals) && node.goals.length > 0 && (
+            <RotatingSubtitle actions={node.goals.map(g => g.title)} delay={subtitleDelay} dimmed={Boolean(isDimmed)} />
           )}
         </motion.div>
       </motion.div>

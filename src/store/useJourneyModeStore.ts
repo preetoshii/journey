@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Accomplishment } from '../types/accomplishmentTypes'; // Correct for Accomplishment
-import type { GoalAction } from '../types'; // Corrected import for GoalAction
+import type { Goal } from '../types'; // Corrected import for Goal
 // Assuming ZoomNode is also needed for _prepareCutsceneState logic later, ensure it's imported if not already
 import type { ZoomNode } from '../types'; 
 // And the nodes data itself, assuming it's accessible or part of the store for progress updates
@@ -25,7 +25,7 @@ export interface JourneyModeState {
   currentAccomplishments: Accomplishment[] | null;
   cutsceneStep: CutsceneStep;
   currentAnimatingAccomplishmentIndex: number;
-  pendingGoalUpdates: Record<string, { progressBoost: number; newActions: GoalAction[] }> | null;
+  pendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> | null;
   nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
 
   // Actions
@@ -65,7 +65,7 @@ export interface JourneyModeStore {
   currentAccomplishments: Accomplishment[] | null;
   cutsceneStep: CutsceneStep;
   currentAnimatingAccomplishmentIndex: number;
-  pendingGoalUpdates: Record<string, { progressBoost: number; newActions: GoalAction[] }> | null;
+  pendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> | null;
   nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
 
   // Actions
@@ -146,18 +146,17 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   },
   _prepareCutsceneState: (accomplishments) => {
     console.log('[Cutscene] Preparing state for accomplishments:', accomplishments);
-    const newPendingGoalUpdates: Record<string, { progressBoost: number; newActions: GoalAction[] }> = {};
+    const newPendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> = {};
     const currentNodes = get().nodes;
-    // let visualProgressUpdates: Array<{ nodeId: string; newVisualProgress: number }> = []; // Not strictly needed if we update nodes directly
 
     accomplishments.forEach(acc => {
       acc.goals.forEach(goalMapping => {
         if (!newPendingGoalUpdates[goalMapping.goalId]) {
-          newPendingGoalUpdates[goalMapping.goalId] = { progressBoost: 0, newActions: [] };
+          newPendingGoalUpdates[goalMapping.goalId] = { progressBoost: 0, newGoals: [] };
         }
         newPendingGoalUpdates[goalMapping.goalId].progressBoost += goalMapping.innerWorkAmount;
-        newPendingGoalUpdates[goalMapping.goalId].newActions.push({
-          date: new Date().toLocaleDateString(), // Placeholder date
+        newPendingGoalUpdates[goalMapping.goalId].newGoals.push({
+          date: new Date().toLocaleDateString(),
           title: acc.title,
           recap: acc.recap,
         });
@@ -167,29 +166,26 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
     const updatedNodes = currentNodes.map(node => {
       let tempNode = { ...node };
       if (newPendingGoalUpdates[tempNode.id]) {
-        // Visually reduce progress
         const currentProgress = tempNode.progress || 0;
         const reduction = Math.min(currentProgress, Math.max(1, newPendingGoalUpdates[tempNode.id].progressBoost * 0.1));
         const newVisualProgress = Math.max(0, currentProgress - reduction);
         console.warn(`[Cutscene] Visually reducing progress for ${tempNode.id} from ${currentProgress} to ${newVisualProgress}. Boost is ${newPendingGoalUpdates[tempNode.id].progressBoost}`);
         tempNode.progress = newVisualProgress;
 
-        // Immediately merge new actions
-        const originalNode = rawNodes.find(rn => rn.id === tempNode.id); // Get original for existing actions
-        const existingActions = originalNode?.recentActions || [];
-        tempNode.recentActions = [...existingActions, ...newPendingGoalUpdates[tempNode.id].newActions];
-        console.log(`[Cutscene] Immediately adding new actions to ${tempNode.id}. Total actions: ${tempNode.recentActions.length}`);
+        const originalNode = rawNodes.find(rn => rn.id === tempNode.id);
+        const existingGoals = originalNode?.goals || [];
+        tempNode.goals = [...existingGoals, ...newPendingGoalUpdates[tempNode.id].newGoals];
+        console.log(`[Cutscene] Immediately adding new goals to ${tempNode.id}. Total goals: ${tempNode.goals.length}`);
       }
       return tempNode;
     });
 
     set({ pendingGoalUpdates: newPendingGoalUpdates, nodes: updatedNodes });
-    console.log('[Cutscene] Pending goal updates calculated (actions merged immediately):', newPendingGoalUpdates);
-    console.log('[Cutscene] Nodes after immediate action merge:', get().nodes);
-    // Log recentActions for each affected node
+    console.log('[Cutscene] Pending goal updates calculated (goals merged immediately):', newPendingGoalUpdates);
+    console.log('[Cutscene] Nodes after immediate goal merge:', get().nodes);
     updatedNodes.forEach(node => {
       if (newPendingGoalUpdates[node.id]) {
-        console.log(`[Cutscene] Recent actions for ${node.id}:`, node.recentActions);
+        console.log(`[Cutscene] Goals for ${node.id}:`, node.goals);
       }
     });
   },
@@ -220,9 +216,9 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
         const newFinalProgress = Math.min(100, originalProgress + pendingGoalUpdates[node.id].progressBoost);
         
         console.log(`[Cutscene] Applying progress to ${node.id}: original progress ${originalProgress}, boost ${pendingGoalUpdates[node.id].progressBoost}, new final progress ${newFinalProgress}. Current visual progress was ${node.progress}`);
-        // newActions are already merged in _prepareCutsceneState, so only update progress.
-        // Ensure recentActions from the node (which already has new ones) is preserved.
-        return { ...node, progress: newFinalProgress, recentActions: node.recentActions };
+        // newGoals are already merged in _prepareCutsceneState, so only update progress.
+        // Ensure goals from the node (which already has new ones) is preserved.
+        return { ...node, progress: newFinalProgress, goals: node.goals };
       }
       return node;
     });

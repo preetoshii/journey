@@ -27,10 +27,13 @@ export interface Position {
 // --- Node (sun or moon) in the zoom world ---
 export type NodeRole = "sun" | "moon";
 
-// New GoalAction interface
-export interface GoalAction {
-  date: string;
+// New Goal interface
+export type GoalStatus = "active" | "completed";
+
+export interface Goal {
   title: string;
+  status: GoalStatus;
+  date?: string; // Only for completed
   recap?: string;
 }
 
@@ -42,7 +45,7 @@ export interface ZoomNode {
   positions: Record<ZoomLevel, Position>; // Position for each zoom level
   color: string; // Node color
   progress?: number; // Optional progress value (0-100)
-  recentActions?: GoalAction[]; // Use new GoalAction type
+  goals?: Goal[]; // Use new Goal type
   growthNarrative?: {
     'last month'?: string;
     'last 6 months'?: string;

@@ -202,109 +202,57 @@ export const DetailScreenConnection: React.FC<{ goal: ZoomNode }> = ({ goal }) =
   );
 };
 
-// Moments Screen: Shows key moments and achievements
-export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
-  const actions = [...(goal.recentActions || [])].sort((a, b) => {
-    // Parse as dates, fallback to string comparison if needed
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateB.getTime() - dateA.getTime();
-  });
-  const [showAll, setShowAll] = useState(false);
-
-  if (actions.length === 0) {
-    return (
-      <p style={{
-        fontFamily: "'Sohne Buch', sans-serif", 
-        fontSize: '18px',
-        color: 'rgba(255, 255, 255, 0.8)',
-        lineHeight: 1.8,
-        margin: 0,
-        maxWidth: '80%',
-      }}>
-        No specific steps recorded for this goal yet.
-      </p>
-    );
+// Active Goals Screen
+export const DetailScreenActiveGoals: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
+  const activeGoals = (goal.goals || []).filter(g => g.status === 'active');
+  if (activeGoals.length === 0) {
+    return <p style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 18, color: 'rgba(255,255,255,0.7)' }}>No active goals at the moment.</p>;
   }
-
-  const actionsToShow = showAll ? actions : actions.slice(0, 3);
-
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {actionsToShow.map((action, index) => (
-        <div
-          key={index}
-          className={styles['step-subcard']}
-                style={{ 
-            border: '1.5px solid #444',
-            borderRadius: 24,
-            padding: '32px 36px',
-            minHeight: 90,
-                  display: 'flex', 
-            flexDirection: 'row',
-                  alignItems: 'center', 
-            gap: 36,
-            marginBottom: 0,
-          }}
-        >
-          {/* Star SVG */}
-              <motion.div
-            animate={{ 
-              y: [0, -6, 0],
-              scale: [1, 1.08, 1]
-            }}
-            transition={{ 
-              duration: 3.5,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatType: "reverse"
-                }}
-              >
+      {activeGoals.map((goal, index) => (
+        <div key={index} className={styles['step-subcard']} style={{ border: '1.5px solid #444', borderRadius: 24, padding: '32px 36px', minHeight: 90, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 36, marginBottom: 0 }}>
+          <motion.div animate={{ y: [0, -6, 0], scale: [1, 1.08, 1] }} transition={{ duration: 3.5, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}>
             <svg width={16} height={16} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-              <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
+              <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#444"/>
             </svg>
-              </motion.div>
+          </motion.div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{
-              fontFamily: "'Sohne Buch', sans-serif",
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: 18,
-              color: 'rgba(255,255,255,0.45)',
-              marginBottom: 5,
-              letterSpacing: 0.2,
-            }}>{action.date}</span>
-            <span style={{
-              fontFamily: "'Sohne Buch', sans-serif",
-              fontSize: 20,
-              color: 'rgba(255,255,255,0.92)',
-              lineHeight: 1.7,
-              fontWeight: 400,
-              margin: 0,
-              textAlign: 'left',
-            }}>{action.title}</span>
+            <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 20, color: 'rgba(255,255,255,0.92)', lineHeight: 1.7, fontWeight: 400, margin: 0, textAlign: 'left' }}>{goal.title}</span>
           </div>
         </div>
       ))}
-      {actions.length > 3 && !showAll && (
-        <button
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#A3B6FF',
-            fontFamily: "'Sohne Buch', sans-serif",
-            fontSize: 18,
-            margin: '10px auto 0 auto',
-            cursor: 'pointer',
-            textDecoration: 'none',
-            letterSpacing: 0.1,
-            display: 'block',
-          }}
-          onClick={() => setShowAll(true)}
-        >
-          SHOW MORE
-        </button>
-      )}
+    </div>
+  );
+};
+
+// Completed Goals Screen
+export const DetailScreenCompletedGoals: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
+  const completedGoals = (goal.goals || []).filter(g => g.status === 'completed');
+  // Sort by date descending, handling undefined dates safely
+  const sortedCompletedGoals = [...completedGoals].sort((a, b) => {
+    const dateA = typeof a.date === 'string' ? Date.parse(a.date) : 0;
+    const dateB = typeof b.date === 'string' ? Date.parse(b.date) : 0;
+    return dateB - dateA;
+  });
+  if (sortedCompletedGoals.length === 0) {
+    return <p style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 18, color: 'rgba(255,255,255,0.7)' }}>No completed goals yet.</p>;
+  }
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {sortedCompletedGoals.map((goal, index) => (
+        <div key={index} className={styles['step-subcard']} style={{ border: '1.5px solid #444', borderRadius: 24, padding: '32px 36px', minHeight: 90, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 36, marginBottom: 0 }}>
+          <motion.div animate={{ y: [0, -6, 0], scale: [1, 1.08, 1] }} transition={{ duration: 3.5, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}>
+            <svg width={16} height={16} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+              <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
+            </svg>
+          </motion.div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontStyle: 'italic', fontWeight: 400, fontSize: 18, color: 'rgba(255,255,255,0.45)', marginBottom: 5, letterSpacing: 0.2 }}>{goal.date}</span>
+            <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 20, color: 'rgba(255,255,255,0.92)', lineHeight: 1.7, fontWeight: 400, margin: 0, textAlign: 'left' }}>{goal.title}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -312,9 +260,14 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
 // Config array for all detail screen types
 export const detailScreenTypes = [
   {
-    key: 'moments',
-    label: 'Goals',
-    component: DetailScreenMoments,
+    key: 'active-goals',
+    label: 'Active Goals',
+    component: DetailScreenActiveGoals,
+  },
+  {
+    key: 'completed-goals',
+    label: 'Completed Goals',
+    component: DetailScreenCompletedGoals,
   },
   {
     key: 'growth',

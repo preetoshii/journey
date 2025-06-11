@@ -35,14 +35,16 @@ export const nodes: ZoomNode[] = [
       level3: { x: 0, y: 0 }
     },
     progress: 50,
-    recentActions: [
-      { date: "04/14/25", title: "You uncovered why you hesitate to take the lead in group settings.", recap: "Recap coming soon!" },
-      { date: "04/12/25", title: "You realized your fear of being judged holds you back from speaking up.", recap: "Recap coming soon!" },
-      { date: "04/10/25", title: "You noticed you defer decisions to avoid conflict.", recap: "Recap coming soon!" },
-      { date: "04/08/25", title: "You roleplayed leading a tough conversation with your coach.", recap: "Recap coming soon!" },
-      { date: "04/05/25", title: "You practiced giving clear direction in a mock scenario.", recap: "Recap coming soon!" },
-      { date: "04/02/25", title: "You wrote down your leadership values and shared them with a peer.", recap: "Recap coming soon!" },
-      { date: "03/30/25", title: "You volunteered to present at the all-hands.", recap: "Recap coming soon!" },
+    goals: [
+      { title: "You uncovered why you hesitate to take the lead in group settings.", status: "completed", date: "04/14/25", recap: "Recap coming soon!" },
+      { title: "You realized your fear of being judged holds you back from speaking up.", status: "completed", date: "04/12/25", recap: "Recap coming soon!" },
+      { title: "You noticed you defer decisions to avoid conflict.", status: "completed", date: "04/10/25", recap: "Recap coming soon!" },
+      { title: "You roleplayed leading a tough conversation with your coach.", status: "completed", date: "04/08/25", recap: "Recap coming soon!" },
+      { title: "You practiced giving clear direction in a mock scenario.", status: "completed", date: "04/05/25", recap: "Recap coming soon!" },
+      { title: "You wrote down your leadership values and shared them with a peer.", status: "completed", date: "04/02/25", recap: "Recap coming soon!" },
+      { title: "You volunteered to present at the all-hands.", status: "completed", date: "03/30/25", recap: "Recap coming soon!" },
+      { title: "Draft your leadership vision statement.", status: "active", recap: "" },
+      { title: "Schedule a feedback session with your team.", status: "active", recap: "" },
     ],
     growthNarrative: {
       'last month': "A month ago, you would operate more with fear, but now you've learned to sit with that fear and not react as strongly to it.",
@@ -62,14 +64,16 @@ export const nodes: ZoomNode[] = [
       level3: { x: 0, y: 0 }
     },
     progress: 75,
-    recentActions: [
-      { date: "04/16/25", title: "You noticed your biggest distraction trigger is checking your phone after meetings.", recap: "Recap coming soon!" },
-      { date: "04/13/25", title: "You tracked your attention and found afternoons are your least focused.", recap: "Recap coming soon!" },
-      { date: "04/11/25", title: "You realized you multitask most when feeling anxious.", recap: "Recap coming soon!" },
-      { date: "04/09/25", title: "You practiced a 10-minute daily digital detox.", recap: "Recap coming soon!" },
-      { date: "04/06/25", title: "You set a timer for focused work and reflected on the results.", recap: "Recap coming soon!" },
-      { date: "04/03/25", title: "You tried mindful breathing when you felt the urge to check your phone.", recap: "Recap coming soon!" },
-      { date: "03/31/25", title: "You put your phone away during dinner.", recap: "Recap coming soon!" },
+    goals: [
+      { title: "You noticed your biggest distraction trigger is checking your phone after meetings.", status: "completed", date: "04/16/25", recap: "Recap coming soon!" },
+      { title: "You tracked your attention and found afternoons are your least focused.", status: "completed", date: "04/13/25", recap: "Recap coming soon!" },
+      { title: "You realized you multitask most when feeling anxious.", status: "completed", date: "04/11/25", recap: "Recap coming soon!" },
+      { title: "You practiced a 10-minute daily digital detox.", status: "completed", date: "04/09/25", recap: "Recap coming soon!" },
+      { title: "You set a timer for focused work and reflected on the results.", status: "completed", date: "04/06/25", recap: "Recap coming soon!" },
+      { title: "You tried mindful breathing when you felt the urge to check your phone.", status: "completed", date: "04/03/25", recap: "Recap coming soon!" },
+      { title: "You put your phone away during dinner.", status: "completed", date: "03/31/25", recap: "Recap coming soon!" },
+      { title: "Try a full day without any digital devices.", status: "active", recap: "" },
+      { title: "Create a distraction log for one week.", status: "active", recap: "" },
     ],
     growthNarrative: {
       'last month': "A month ago, you struggled to unplug during family time, but now you've created focused blocks and enjoyed more present moments.",
@@ -89,14 +93,16 @@ export const nodes: ZoomNode[] = [
       level3: { x: 0, y: 0 }
     },
     progress: 30,
-    recentActions: [
-      { date: "04/15/25", title: "You uncovered why you struggle with delegation and saying no.", recap: "Recap coming soon!" },
-      { date: "04/14/25", title: "You noticed you avoid conflict to keep the peace, even when it costs you.", recap: "Recap coming soon!" },
-      { date: "04/12/25", title: "You realized you feel guilty when prioritizing your own work.", recap: "Recap coming soon!" },
-      { date: "04/10/25", title: "You roleplayed saying no to further requests.", recap: "Recap coming soon!" },
-      { date: "04/07/25", title: "You practiced stating your opinion first in a group discussion.", recap: "Recap coming soon!" },
-      { date: "04/04/25", title: "You wrote out your boundaries and rehearsed them aloud.", recap: "Recap coming soon!" },
-      { date: "04/01/25", title: "You held your view in a tough meeting.", recap: "Recap coming soon!" },
+    goals: [
+      { title: "You uncovered why you struggle with delegation and saying no.", status: "completed", date: "04/15/25", recap: "Recap coming soon!" },
+      { title: "You noticed you avoid conflict to keep the peace, even when it costs you.", status: "completed", date: "04/14/25", recap: "Recap coming soon!" },
+      { title: "You realized you feel guilty when prioritizing your own work.", status: "completed", date: "04/12/25", recap: "Recap coming soon!" },
+      { title: "You roleplayed saying no to further requests.", status: "completed", date: "04/10/25", recap: "Recap coming soon!" },
+      { title: "You practiced stating your opinion first in a group discussion.", status: "completed", date: "04/07/25", recap: "Recap coming soon!" },
+      { title: "You wrote out your boundaries and rehearsed them aloud.", status: "completed", date: "04/04/25", recap: "Recap coming soon!" },
+      { title: "You held your view in a tough meeting.", status: "completed", date: "04/01/25", recap: "Recap coming soon!" },
+      { title: "Draft a personal boundaries checklist.", status: "active", recap: "" },
+      { title: "Have a direct conversation with a peer about priorities.", status: "active", recap: "" },
     ],
     growthNarrative: {
       'last month': "A month ago, you would often sidestep disagreement, but now you've started to hold your view in team calls.",

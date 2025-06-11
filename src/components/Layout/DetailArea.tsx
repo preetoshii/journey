@@ -210,7 +210,7 @@ const DetailArea: React.FC<DetailAreaProps> = ({ scrollContainerRef }) => {
                       onClick={() => handleCardClick(cardKey)}
                       style={{ 
                         background: 'transparent',
-                        border: screen.key === 'moments' ? 'none' : '1px solid #333333',
+                        border: (screen.key === 'active-goals' || screen.key === 'completed-goals') ? 'none' : '1px solid #333333',
                         borderRadius: 24,
                         paddingTop: '52px',
                         paddingRight: '40px',
