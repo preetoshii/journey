@@ -72,7 +72,7 @@ function App() {
 
       // Thresholds for switching remain sensitive as per user request
       const switchToDetailThreshold = 1; // Effectively scrollTop > 0
-      const switchToOverviewThreshold = window.innerHeight - 1; // Effectively scrollTop < window.innerHeight
+      const switchToOverviewThreshold = 1; // Switch back to overview only when at the very top.
 
       if (scrollDirection === 'down') {
         if (currentMode === 'overview' && scrollTop >= switchToDetailThreshold) {
@@ -83,7 +83,7 @@ function App() {
           console.log(`Scroll DOWN: Switched to Detail mode (scrollTop: ${scrollTop})`);
         }
       } else if (scrollDirection === 'up') {
-        if (currentMode === 'detail' && scrollTop <= switchToOverviewThreshold) {
+        if (currentMode === 'detail' && scrollTop < switchToOverviewThreshold) {
           setMode('overview');
           if (!isDebugMode) {
             setFocusedMoonIndex(0);
