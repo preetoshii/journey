@@ -312,9 +312,9 @@ export const DetailScreenMoments: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
 // Config array for all detail screen types
 export const detailScreenTypes = [
   {
-    key: 'progress',
-    label: 'The BetterUp Process',
-    component: DetailScreenProgress,
+    key: 'moments',
+    label: 'Goals',
+    component: DetailScreenMoments,
   },
   {
     key: 'growth',
@@ -322,8 +322,8 @@ export const detailScreenTypes = [
     component: DetailScreenGrowth,
   },
   {
-    key: 'moments',
-    label: 'Accomplishments',
-    component: DetailScreenMoments,
+    key: 'connection',
+    label: 'Connection to North Star',
+    component: DetailScreenConnection,
   },
 ]; 

@@ -181,7 +181,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
 
       if (scrollContainer && node.id) {
         // Find the first detail screen card for this moon
-        const firstCardKey = `${node.id}-progress`; // 'progress' is the first screen type
+        const firstCardKey = `${node.id}-moments`; // 'moments' is now the first screen type
         const firstCardElement = document.querySelector(`[data-card-key="${firstCardKey}"]`);
         
         if (firstCardElement) {
@@ -362,7 +362,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
               opacity: 0.85
             }}
           >
-            {getPhaseInfo(node.progress || 0).name}
+            TRACK
           </div>
           <motion.h3
             className="moon-title" // Changed class name
