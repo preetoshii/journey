@@ -286,9 +286,10 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
             progress={Boolean(isDot) ? 0 : (typeof node.progress === 'number' ? node.progress : 0)}
             radius={CIRCLE_L1_SIZE / 2}
             thickness={6}
-            color={lightenColor(color, 90)}
-            glowColor="rgba(255,255,255,0.18)"
-            active={true} // Arc is always active for moons, appearance controlled by opacity/progress
+            color={lightenColor(color, 70)}
+            baseColor={color}
+            glowColor={hexToRgba(color, 0.25)}
+            active={true}
             animationDuration={progressBarAnimationDuration}
             containerSize={CIRCLE_L1_SIZE + 40}
           />
@@ -312,7 +313,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
             width: CIRCLE_L1_SIZE,
             height: CIRCLE_L1_SIZE,
             borderRadius: "50%",
-            border: `${BORDER_WIDTH}px solid ${hexToRgba(lightenColor(color, 60), 0.68)}`,
+            border: `${BORDER_WIDTH}px solid ${hexToRgba(lightenColor(color, 60), 0.35)}`,
             boxShadow: `0 0 32px 4px rgba(255, 255, 255, 0.18)`,
             backgroundColor: "transparent",
           }}

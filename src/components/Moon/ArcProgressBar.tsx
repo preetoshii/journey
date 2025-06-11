@@ -26,6 +26,10 @@
   HELPER FUNCTIONS:
   - `polarToCartesian`: Converts polar coordinates to Cartesian coordinates for SVG path calculations.
   - `describeArc`: Generates the SVG `d` attribute string for drawing the arc.
+  - `lightenColor`: Lightens a hex color by a specified amount.
+  - `hexToRgba`: Converts a hex color to rgba with a specified alpha value.
+  - `darkenColor`: Darkens a hex color by a specified amount.
+  - `mixWithBlack`: Mixes a hex color with black by a given percentage.
 */
 
 import React from "react";
@@ -36,6 +40,7 @@ interface ArcProgressBarProps {
   radius: number; // arc radius
   thickness: number;
   color: string;
+  baseColor?: string;
   glowColor?: string;
   head?: React.ReactNode;
   active: boolean;
@@ -113,6 +118,7 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
  *  - `radius`: The radius of the arc.
  *  - `thickness`: The thickness of the arc line.
  *  - `color`: The main color of the arc.
+ *  - `baseColor`: (Optional) The base color for the dotted line.
  *  - `glowColor`: (Optional) The color of the glow effect around the arc. Defaults to a semi-transparent white.
  *  - `head`: (Optional) A React node to be used as the "head" of the progress bar, moving along the arc.
  *            If not provided, a default pulsating circle head is rendered.
@@ -126,7 +132,7 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
  *  - `progressMotion`: A Framer Motion `MotionValue` used to animate the progress.
  *  - `spring`: A Framer Motion spring animation applied to `progressMotion`.
  *  - `animatedProgress`: The current animated progress value derived from the spring.
- *  - `arcPath`: A memoized SVG path string for the arc, recalculated when `animatedProgress` or other relevant props change.
+ *  - `arcPaths`: A memoized array of SVG path objects for the arc segments.
  *  - `headPos`: A memoized object containing the x and y coordinates for the head element, recalculated when `animatedProgress` changes.
  *
  * The component uses `useEffect` hooks to manage the animation lifecycle based on the `active` prop and `progress` changes.
@@ -139,6 +145,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   radius,
   thickness,
   color,
+  baseColor,
   glowColor = "rgba(255,255,255,0.18)",
   head,
   active,
@@ -147,6 +154,28 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
 }) => {
   const center = containerSize / 2;
   const startAngle = Math.PI / 2; // 90deg, bottom
+
+  // --- Dotted Line Logic ---
+  const [dottedLinePath, setDottedLinePath] = React.useState('');
+
+  React.useEffect(() => {
+    const sections = [
+      { start: Math.PI / 2, end: (7 * Math.PI) / 6, min: 0, max: 33.33 },
+      { start: (7 * Math.PI) / 6, end: (11 * Math.PI) / 6, min: 33.33, max: 66.66 },
+      { start: (11 * Math.PI) / 6, end: (Math.PI / 2) + (2 * Math.PI), min: 66.66, max: 100.01 },
+    ];
+
+    const currentSection = sections.find(s => progress >= s.min && progress < s.max);
+
+    if (currentSection) {
+      // Use dummy progress < 50 to ensure largeArcFlag is 0 for our 120deg segments
+      const path = describeArc(center, center, radius, currentSection.start, currentSection.end, 1, 1);
+      setDottedLinePath(path);
+    } else {
+      setDottedLinePath('');
+    }
+  }, [progress, center, radius]);
+  // --- End Dotted Line Logic ---
 
   // Track if this is the first time becoming active
   const [isFirstActivation, setIsFirstActivation] = React.useState(true);
@@ -237,17 +266,52 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   // Arc path as a derived value (always from start to animatedProgress)
 
 
-  const arcPath = React.useMemo(() => {
-    if (!active || animatedProgress <= 0) return "";
-    const endAngle = startAngle + (2 * Math.PI * (animatedProgress / 100));
-    const largeArcFlag = animatedProgress > 50 ? 1 : 0;
-    const start = polarToCartesian(center, center, radius, startAngle);
-    const end = polarToCartesian(center, center, radius, endAngle);
-    return [
-      "M", start.x, start.y,
-      "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
-    ].join(" ");
-  }, [active, animatedProgress, center, radius, startAngle]);
+  const arcData = React.useMemo(() => {
+    const paths = [];
+    const completedColor = color; // The "slightly lightened" color
+    const activeColor = lightenColor(baseColor || color, 120); // The "fully lightened" (almost white) color
+    
+    const completedGlow = glowColor;
+    const activeGlow = lightenColor(baseColor || color, 120, 0.5);
+
+    const sectionDefs = [
+      { start: Math.PI / 2, end: (7 * Math.PI) / 6, threshold: 33.33 },
+      { start: (7 * Math.PI) / 6, end: (11 * Math.PI) / 6, threshold: 66.66 },
+      { start: (11 * Math.PI) / 6, end: (Math.PI / 2) + (2 * Math.PI), threshold: 100 },
+    ];
+
+    let remainingProgress = animatedProgress;
+    const gapSize = 0.075; // Size of the gap in radians (about 4.5 degrees)
+
+    for (const section of sectionDefs) {
+      if (remainingProgress <= 0) break;
+
+      const sectionLength = section.threshold - (sectionDefs.indexOf(section) > 0 ? sectionDefs[sectionDefs.indexOf(section) - 1].threshold : 0);
+      const progressInSection = Math.min(remainingProgress, sectionLength);
+      
+      const isCompleted = remainingProgress > sectionLength;
+      const finalColor = isCompleted ? completedColor : activeColor;
+      const finalGlow = isCompleted ? completedGlow : activeGlow;
+
+      const angleRatio = progressInSection / sectionLength;
+      // Add gap at the end of each section except the last one
+      const endAngle = section.start + (section.end - section.start - (section.threshold < 100 ? gapSize : 0)) * angleRatio;
+      
+      paths.push({
+        d: describeArc(center, center, radius, section.start, endAngle, 1, 1),
+        color: finalColor,
+        glowColor: finalGlow,
+        key: `arc-section-${section.threshold}`
+      });
+
+      remainingProgress -= sectionLength;
+    }
+
+    const headColor = paths.length > 0 ? paths[paths.length - 1].color : completedColor;
+    const headGlowColor = paths.length > 0 ? paths[paths.length - 1].glowColor : completedGlow;
+
+    return { paths, headColor, headGlowColor };
+  }, [animatedProgress, center, radius, color, baseColor, glowColor]);
 
 
 
@@ -266,6 +330,63 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     return polarToCartesian(center, center, radius, endAngle);
   }, [active, animatedProgress, center, radius, startAngle]);
 
+  // Helper to lighten a hex color
+  function lightenColor(hex: string, amount: number, alpha?: number) {
+    let col = hex.replace('#', '');
+    if (col.length === 3) col = col.split('').map(x => x + x).join('');
+    const num = parseInt(col, 16);
+    let r = (num >> 16) + amount;
+    let g = ((num >> 8) & 0x00FF) + amount;
+    let b = (num & 0x0000FF) + amount;
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    const newHex = `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+    if (typeof alpha === 'number') {
+      return hexToRgba(newHex, alpha);
+    }
+    return newHex;
+  }
+
+  // Helper to convert hex color to rgba with alpha
+  function hexToRgba(hex: string, alpha: number) {
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  // Helper to darken a hex color
+  function darkenColor(hex: string, amount: number) {
+    let col = hex.replace('#', '');
+    if (col.length === 3) col = col.split('').map(x => x + x).join('');
+    const num = parseInt(col, 16);
+    let r = (num >> 16) - amount;
+    let g = ((num >> 8) & 0x00FF) - amount;
+    let b = (num & 0x0000FF) - amount;
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+  }
+
+  // Helper to mix a hex color with black by a given percentage (amount: 0 = original, 1 = black)
+  function mixWithBlack(hex: string, amount: number) {
+    let col = hex.replace('#', '');
+    if (col.length === 3) col = col.split('').map(x => x + x).join('');
+    const num = parseInt(col, 16);
+    let r = (num >> 16) & 255;
+    let g = (num >> 8) & 255;
+    let b = num & 255;
+    r = Math.round(r * (1 - amount));
+    g = Math.round(g * (1 - amount));
+    b = Math.round(b * (1 - amount));
+    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+  }
+
   return (
     <svg
       width={containerSize}
@@ -280,32 +401,48 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
         zIndex: 2,
       }}
     >
-      {/* Glow */}
-      {active && arcPath && (
-        <motion.path
-          d={arcPath}
-          stroke={glowColor}
-          initial={{ strokeWidth: 0 }}
-          animate={{ strokeWidth: thickness * 2.2 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-          fill="none"
-          style={{ filter: `blur(6px)` }}
-        />
-      )}
-      {/* Main arc */}
-      {active && arcPath && (
-        <motion.path
-          d={arcPath}
-          stroke={color}
-          initial={{ strokeWidth: 0 }}
-          animate={{ strokeWidth: thickness }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-          fill="none"
+      {/* Dotted section line */}
+      {active && dottedLinePath && (
+        <path
+          d={dottedLinePath}
+          stroke={baseColor || color}
+          strokeWidth={thickness * 0.8}
+          strokeDasharray={`1 ${thickness * 2}`}
           strokeLinecap="round"
+          fill="none"
         />
       )}
+
+      {/* Glow */}
+      {active && arcData.paths.map(path => (
+        <React.Fragment key={path.key}>
+          {/* Glow */}
+          <motion.path
+            d={path.d}
+            stroke={path.glowColor}
+            initial={{ strokeWidth: 0 }}
+            animate={{ strokeWidth: thickness * 2.2 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            fill="none"
+            style={{ filter: `blur(6px)` }}
+          />
+          {/* Main arc */}
+          <motion.path
+            d={path.d}
+            stroke={path.color}
+            initial={{ strokeWidth: 0 }}
+            animate={{ strokeWidth: thickness }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            fill="none"
+            strokeLinecap="round"
+          />
+        </React.Fragment>
+      ))}
+      
+      {/* Checkpoints (Removed) */}
+      
       {/* Head */}
-      {active && arcPath && (
+      {active && arcData.paths.length > 0 && (
         head && React.isValidElement(head)
           ? (typeof head.type === 'string' && (head.type === 'circle' || head.type === 'ellipse')
               ? React.cloneElement(head as React.ReactElement<any>, {
@@ -326,8 +463,8 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
                 repeat: Infinity,
                 repeatType: 'loop',
               }}
-              fill={color}
-              style={{ filter: `drop-shadow(0 0 8px ${glowColor})` }}
+              fill={arcData.headColor}
+              style={{ filter: `drop-shadow(0 0 8px ${arcData.headGlowColor})` }}
             />
           )
       )}
