@@ -6,7 +6,11 @@ import type { ZoomNode } from '../types';
 // And the nodes data itself, assuming it's accessible or part of the store for progress updates
 import { nodes as rawNodes } from '../components/Moon/MoonVisualizer'; // Assuming this is the source of truth for now
 
-// Define the CutsceneStep union type
+/**
+ * @typedef {('idle' | 'starsAppear' | 'starsPause' | 'starsFly' | 'progressBoost' | 'ending')} CutsceneStep
+ * @description Represents the specific stage of the accomplishment cutscene animation, allowing components
+ * to show different visuals and behaviors for each step of the sequence.
+ */
 export type CutsceneStep = 'idle' | 'starsAppear' | 'starsPause' | 'starsFly' | 'progressBoost' | 'ending';
 
 export interface JourneyModeState {
@@ -49,6 +53,13 @@ export interface JourneyModeState {
   updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
 }
 
+/**
+ * @interface JourneyModeStore
+ * @description Defines the complete shape of the application's central state store, managed by Zustand.
+ * This interface includes all state properties and the action functions that can be used to modify them.
+ * It serves as the single source of truth for the entire application, ensuring that all components
+ * share a consistent and predictable state.
+ */
 export interface JourneyModeStore {
   mode: 'overview' | 'detail';
   focusedMoonIndex: number; // 0 for sun/overview, 1-3 for moons in detail
@@ -93,6 +104,21 @@ export interface JourneyModeStore {
   resetMoonPulse: (moonId: string) => void;
 }
 
+/**
+ * useJourneyModeStore
+ * -------------------
+ * This is the central state management store for the entire application, implemented with Zustand.
+ * It provides a single, unified object for state and actions that can be accessed by any component,
+ * eliminating the need for complex prop drilling and making state management clear and predictable.
+ *
+ * The store is divided into several logical sections:
+ * - **Initial State:** Default values for all state properties.
+ * - **Action Implementations:** The concrete logic for each action defined in the `JourneyModeStore` interface.
+ *   These are typically simple `set()` calls for straightforward state changes.
+ * - **Cutscene Logic:** A more complex set of actions that manage the multi-step accomplishment cutscene.
+ *   This logic is co-located here to keep the complex state transformations contained within the store itself,
+ *   rather than scattered across components.
+ */
 export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   mode: 'overview',
   focusedMoonIndex: 0,
@@ -133,7 +159,26 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   setActiveCardKey: (key) => set({ activeCardKey: key }),
   setIsMoonHovered: (isHovered) => set({ isMoonHovered: isHovered }), // Action implementation
 
-  // Cutscene Action Implementations (initial, _prepareCutsceneState will be more detailed later)
+  /**
+   * Cutscene Logic
+   * --------------
+   * This collection of actions orchestrates the complex, multi-stage accomplishment cutscene. The logic
+   * is centralized here to ensure that all state transitions are handled atomically and predictably.
+   *
+   * The typical flow is as follows:
+   * 1. `triggerCutscene` is called from the UI with a list of accomplishments.
+   * 2. It immediately calls `_prepareCutsceneState`. This internal function calculates the total `progressBoost`
+   *    for each affected moon and creates a `pendingGoalUpdates` object. It also immediately merges the new
+   *    goal text into the `nodes` data so the UI can display them.
+   * 3. `triggerCutscene` then sets `isCutsceneActive` to true and the `cutsceneStep` to 'starsAppear',
+   *    which starts the visual animation sequence in the `AccomplishmentCutsceneOverlay` component.
+   * 4. The overlay component, as it moves through its animations, calls `setCutsceneStep` to advance the state.
+   * 5. When the animation reaches the 'progressBoost' step, the `_applyPendingChanges` action is called. This
+   *    function takes the `progressBoost` values from `pendingGoalUpdates` and applies them to the `nodes`,
+   *    causing the `ArcProgressBar` components to animate to their new, higher progress values.
+   * 6. Finally, `_endCutscene` is called to reset all cutscene-related state variables back to their
+   *    default 'idle' values, concluding the sequence.
+   */
   triggerCutscene: (accomplishments) => {
     get()._prepareCutsceneState(accomplishments);
     set({
@@ -159,6 +204,7 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
           date: new Date().toLocaleDateString(),
           title: acc.title,
           recap: acc.recap,
+          status: 'completed',
         });
       });
     });

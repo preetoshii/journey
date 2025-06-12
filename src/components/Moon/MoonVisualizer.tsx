@@ -107,9 +107,20 @@ export const nodes: ZoomNode[] = [
 ];
 
 /**
- * MoonVisualizer
- * Main component for the moon visualization UI.
- * Handles rendering and layout of moons based on global state.
+ * @component MoonVisualizer
+ * @description This component acts as the central layout engine and orchestrator for the entire moon
+ * visualization. Its primary responsibility is to render the collection of `MoonNode` components and
+ * calculate their positions, scales, and states based on the global application mode ('overview' or 'detail')
+ * and which moon is currently focused.
+ *
+ * It does not manage the internal state of any individual moon. Instead, it subscribes to the global
+ * `useJourneyModeStore` (Zustand) to get the `mode` and `focusedMoonIndex`. Based on these values,
+ * it calculates the `targetX`, `targetY`, `targetScale`, `isFocused`, and `isDot` props for each
+ * `MoonNode`. This centralized approach allows for complex, choreographed animations where all moons
+ * move in concert when the application state changes.
+ *
+ * It also handles the "click outside" interaction to deselect a focused moon and return to the
+ * overview, providing an intuitive navigation path for the user.
  */
 export const MoonVisualizer = () => {
   const currentLevel = 'level1'; // Kept for base positions, but zoom is removed
@@ -121,7 +132,21 @@ export const MoonVisualizer = () => {
   const setIsMoonHovered = useJourneyModeStore((s) => s.setIsMoonHovered);
   const storeNodes = useJourneyModeStore((s) => s.nodes); // Add this line to get nodes from store
 
-  // Layout logic for detail mode when a moon is focused
+  /**
+   * Detail View Layout Configuration
+   * --------------------------------
+   * This block of constants defines the precise layout for the moons when the application is in 'detail' mode.
+   * Instead of being spread out as they are in the overview, the moons arrange themselves into a specific,
+   * static configuration:
+   *
+   * - `detailMoonX`/`detailMoonY`: Defines the target coordinates for the single `isFocused` moon, moving it
+   *   to the left side of the screen to make room for the detail cards on the right.
+   * - `dotMoonX`: Defines the X coordinate where the non-focused moons will stack vertically as small 'dots'.
+   * - `dotSpacing`: Controls the vertical distance between these dots.
+   * - `dotSlotYPositions`: This array is calculated based on the number of moons and the spacing, providing a
+   *   pre-computed list of Y-coordinates for each dot's "slot". This ensures they are always perfectly centered
+   *   and evenly spaced, regardless of the number of moons.
+   */
   const detailMoonX = -360; // X position for the focused moon (balanced spacing)
   const dotMoonX = -800;    // X position for the dot moons
   const detailMoonY = 0;    // Centered Y for focused moon
@@ -137,6 +162,18 @@ export const MoonVisualizer = () => {
   });
   // For 3 moons, this results in: [-dotSpacing, 0, dotSpacing] relative to detailMoonY
 
+  /**
+   * Click-Away Deselection Logic
+   * ----------------------------
+   * This `div` acts as a capture area for mouse events to implement a "click outside to deselect" feature.
+   * When in 'detail' mode, if a user clicks on the background area of the visualizer (i.e., not on an
+   * interactive `MoonNode` element), it transitions the application state back to 'overview'.
+   *
+   * It works by recording the mouse down position and comparing it to the mouse up position to prevent
+   * firing on drags. It then checks if the click target was part of a `[data-moon-node]`. If not,
+   * and if a moon is currently focused, it calls `setMode('overview')` and `setFocusedMoonIndex(0)`
+   * from the global store, triggering the animated transition back to the main overview layout.
+   */
   return (
     <div 
       style={{ 
@@ -151,25 +188,6 @@ export const MoonVisualizer = () => {
         gridRow: '1 / 2',
         gridColumn: '1 / 2',
       }}
-      onMouseDown={(e) => {
-        (window as any)._moonVisualizerMouseDown = { x: e.clientX, y: e.clientY };
-      }}
-      onMouseUp={(e) => {
-        if (mode !== 'detail') return;
-        // Only act if a moon is currently focused
-        if (focusedMoonIndex === 0) return; 
-
-        const down = (window as any)._moonVisualizerMouseDown;
-        // Check for drag vs. click
-        if (down && (Math.abs(e.clientX - down.x) > 5 || Math.abs(e.clientY - down.y) > 5)) return;
-        // Check if click was on a moon node itself
-        if ((e.target as HTMLElement).closest('[data-moon-node]')) return;
-        
-        // Click was outside a moon in detail mode while a moon was focused
-        // Transition back to overview mode and unfocus moon
-        setMode('overview');
-        setFocusedMoonIndex(0);
-      }}
     >
       <motion.div
         style={{
@@ -182,48 +200,60 @@ export const MoonVisualizer = () => {
         }}
       >
         {storeNodes.map((node, arrayIndex) => { // Renamed idx to arrayIndex for clarity
+          /**
+           * Per-Node Layout Calculation
+           * ---------------------------
+           * This is the core logic of the MoonVisualizer, executed for every node on every render. It determines
+           * the precise layout properties (`targetX`, `targetY`, `targetScale`, etc.) for each `MoonNode`
+           * based on the current global application state (`mode` and `focusedMoonIndex`).
+           *
+           * The logic follows a clear path:
+           * 1. Sun Handling: If the node is the 'sun', it's given a fixed position and is never interactive.
+           * 2. Overview Mode: If the mode is 'overview', all moon nodes are given their default positions and
+           *    a scale of 1. `isFocused` and `isDot` are both false.
+           * 3. Detail Mode: If the mode is 'detail', it checks if the current node's index matches the
+           *    `focusedMoonIndex` from the store.
+           *    - If it's the focused moon, it's assigned the `detailMoonX`/`Y` coordinates and a larger
+           *      `targetScale`. `isFocused` is set to true.
+           *    - If it's NOT the focused moon, it's designated as a 'dot'. It's sent to the `dotMoonX`
+           *      coordinate and its specific vertical slot (`dotSlotYPositions`). Its scale is shrunk
+           *      dramatically, and `isDot` is set to true.
+           *
+           * These calculated props are then passed down to the `MoonNode`, which handles the actual animation
+           * to these target values.
+           */
           let targetX = node.positions[currentLevel].x;
           let targetY = node.positions[currentLevel].y;
           let targetScale = 1;
           let isFocused = false;
           let isDot = false;
 
-          // Sun node handling (always uses its L1 position, never focused/dot)
-          if (node.role === 'sun') {
-            targetX = node.positions.level1.x;
-            targetY = node.positions.level1.y;
-            targetScale = 1; 
+          // In overview mode, all moons use their default L1 positions.
+          if (mode === 'overview' || focusedMoonIndex === 0) {
+            targetX = node.positions[currentLevel].x;
+            targetY = node.positions[currentLevel].y;
+            targetScale = 1;
             isFocused = false;
             isDot = false;
-          } else if (node.role === 'moon') {
-            // Moon specific logic
-            if (mode === 'overview' || focusedMoonIndex === 0) {
-              // Standard overview layout for all moons
-              targetX = node.positions[currentLevel].x;
-              targetY = node.positions[currentLevel].y;
-              targetScale = 1;
-              isFocused = false;
+          } else {
+            // In detail mode, we arrange the moons into a focused layout.
+            // focusedMoonStoreIndex is 0-based for array comparison.
+            const focusedMoonStoreIndex = focusedMoonIndex - 1; 
+
+            if (arrayIndex === focusedMoonStoreIndex) {
+              // This moon is the currently focused one.
+              targetX = detailMoonX;
+              targetY = detailMoonY;
+              targetScale = 1.5; // Adjusted scale for focused moon
+              isFocused = true;
               isDot = false;
             } else {
-              // Detail mode with a focused moon (focusedMoonIndex is 1, 2, or 3)
-              // focusedMoonStoreIndex is 0-based for array comparison
-              const focusedMoonStoreIndex = focusedMoonIndex - 1; 
-
-              if (arrayIndex === focusedMoonStoreIndex) {
-                // This moon is the currently focused one
-                targetX = detailMoonX;
-                targetY = detailMoonY;
-                targetScale = 1.5; // Adjusted scale for focused moon
-                isFocused = true;
-                isDot = false;
-              } else {
-                // This moon is a dot, send it to its designated slot Y position
-                targetX = dotMoonX;
-                targetY = dotSlotYPositions[arrayIndex]; // Use the moon's own slot index
-                targetScale = 0.05;
-                isFocused = false;
-                isDot = true;
-              }
+              // This moon becomes a "dot" on the side.
+              targetX = dotMoonX;
+              targetY = dotSlotYPositions[arrayIndex]; // Use the moon's own slot index
+              targetScale = 0.05;
+              isFocused = false;
+              isDot = true;
             }
           }
 

@@ -155,7 +155,20 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   const center = containerSize / 2;
   const startAngle = Math.PI / 2; // 90deg, bottom
 
-  // --- Dotted Line Logic ---
+  /**
+   * Dotted Section Line
+   * -------------------
+   * This block of logic is responsible for rendering the static, dotted line that indicates the current 120-degree
+   * "section" the user's progress falls within. It does not animate with the progress bar itself, but instead
+   * instantly appears, providing a subtle, fixed guide for the current phase of progress.
+   *
+   * It works by defining the three sections of the circle, each spanning 120 degrees (e.g., 0-33%, 33-66%, 66-100%).
+   * A `useEffect` hook determines which of these sections the current `progress` prop falls into. Once the
+   * current section is identified, it generates the corresponding SVG arc path data using the `describeArc`
+   * helper. This path data is then stored in the `dottedLinePath` state and rendered as a separate, styled
+   * <path> element in the SVG, using the moon's base color and a dash array to create the dotted effect.
+   * If the progress is at a boundary where no section is active (e.g., exactly 0 or 100), the path is cleared.
+   */
   const [dottedLinePath, setDottedLinePath] = React.useState('');
 
   React.useEffect(() => {
@@ -177,19 +190,19 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   }, [progress, center, radius]);
   // --- End Dotted Line Logic ---
 
-  // Track if this is the first time becoming active
-  const [isFirstActivation, setIsFirstActivation] = React.useState(true);
-
-
-
   /**
-   * Effect to manage the `isFirstActivation` state.
-   * Resets `isFirstActivation` to `true` when the component becomes inactive,
-   * and sets it to `false` on the first activation. This ensures that the
-   * "animate from zero" behavior only happens on the initial display or
-   * after being re-activated from an inactive state.
+   * Initial Animation and State Management
+   * --------------------------------------
+   * This section manages the component's activation state to ensure animations behave correctly,
+   * especially on the first appearance. The `isFirstActivation` state flag is crucial for the "load-in"
+   * animation, where the progress bar animates from 0 up to its initial value.
+   *
+   * A `useEffect` hook watches the `active` prop. When the component becomes inactive, it resets
+   * `isFirstActivation` to `true`. When it becomes active for the first time after that reset, the
+   * flag is set to `false`. This cycle ensures that the entry animation can be re-triggered if the
+   * component is hidden and then shown again, providing a consistent user experience.
    */
-
+  const [isFirstActivation, setIsFirstActivation] = React.useState(true);
 
   React.useEffect(() => {
     if (active && isFirstActivation) {
@@ -201,24 +214,34 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
 
   const effectiveProgress = progress;
 
-  // Animate progress with Framer Motion
+  /**
+   * Core Progress Animation
+   * -----------------------
+   * This is where the primary animation for the progress bar is defined using Framer Motion's `useSpring`.
+   * It takes the raw `progress` value and creates a smoothed, physically-simulated `animatedProgress`
+   * value that provides a more natural and fluid motion.
+   *
+   * 1. `progressMotion`: A `MotionValue` is initialized. If it's the component's first activation,
+   *    it starts at 0 to ensure the bar animates from the beginning. Otherwise, it starts at the
+   *    current `effectiveProgress`.
+   * 2. `spring`: The `useSpring` hook is applied to `progressMotion`. This creates the physics-based
+   *    animation, where properties like `damping` and `stiffness` can be tweaked to change the feel
+   *    of the animation (e.g., how much it "bounces" or overshoots).
+   * 3. `useEffect` (on `effectiveProgress`): This hook is the trigger. When the `progress` prop changes,
+   *    it updates the target of the `progressMotion` value, causing the spring animation to start moving
+   *    towards the new value. It includes a delay on first activation to allow other UI elements
+   *    (like the moon itself) to complete their entry animations first.
+   * 4. `useEffect` (on `spring`): This hook subscribes to the `onChange` event of the `spring`. As the
+   *    spring animates, it continuously updates the `animatedProgress` state variable. This derived
+   *    state is what is actually used to draw the visible arc, ensuring the SVG path is redrawn
+   *    on every frame of the animation.
+   */
   const progressMotion = useMotionValue(isFirstActivation ? 0 : effectiveProgress);
   const spring = useSpring(progressMotion, { 
     duration: animationDuration, 
     damping: 20, 
     stiffness: 120 
   });
-
-
-
-  /**
-   * Effect to update the `progressMotion` value when `effectiveProgress` or `active` state changes.
-   * If the component is active:
-   *  - On first activation, it sets the motion value to 0 and then animates to `effectiveProgress` after a delay.
-   *    This delay allows other entry animations (like a moon growing) to complete first.
-   *  - On subsequent updates while active, it directly sets the motion value to `effectiveProgress`.
-   */
-
 
   React.useEffect(() => {
     if (active) {
@@ -237,16 +260,6 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
   // Derived animated progress value
   const [animatedProgress, setAnimatedProgress] = React.useState(effectiveProgress);
 
-
-
-  /**
-   * Effect to subscribe to changes in the `spring` animation and update `animatedProgress`.
-   * If the component is not `active`, `animatedProgress` is set to 0.
-   * Otherwise, it reflects the current value of the spring animation.
-   * The subscription is cleaned up when the component unmounts or dependencies change.
-   */
-
-
   React.useEffect(() => {
     if (!active) return setAnimatedProgress(0);
     setAnimatedProgress(spring.get());
@@ -254,18 +267,25 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     return unsubscribe;
   }, [active, spring]);
 
-
-
-
   /**
-   * Memoized calculation of the SVG arc path string.
-   * This path is only recalculated if `active`, `animatedProgress`, `center`, `radius`, or `startAngle` changes.
-   * Returns an empty string if not active or progress is zero, effectively hiding the arc.
-   * The arc is drawn clockwise from `startAngle` to an `endAngle` determined by `animatedProgress`.
+   * Multi-Part Arc Path Generation
+   * ------------------------------
+   * This is the core rendering logic that creates the sophisticated, multi-segment appearance of the progress bar.
+   * Instead of drawing a single arc, it calculates and generates an array of separate arc path objects, each
+   * with its own color, glow, and styling. This allows for the dynamic visual distinction between "completed"
+   * sections and the "active" section of the progress.
+   *
+   * The logic, wrapped in a `useMemo` for performance, iterates through the predefined section definitions.
+   * For each section, it determines if the `animatedProgress` has fully passed it or is currently within it.
+   * - If a section is complete, it's assigned the standard "slightly lightened" color.
+   * - If a section is the active one, it's assigned the "fully lightened" (almost white) color and a more
+   *   prominent glow, making it the clear focal point.
+   *
+   * It also calculates the small `gapSize` between segments by slightly shortening the end angle of each arc,
+   * creating the visual separation that defines the sections. The final output is an `arcData` object
+   * containing an array of path data (`paths`) and the correct color for the moving head (`headColor` and `headGlowColor`),
+   * which is derived from the very last segment in the `paths` array.
    */
-  // Arc path as a derived value (always from start to animatedProgress)
-
-
   const arcData = React.useMemo(() => {
     const paths = [];
     const completedColor = color; // The "slightly lightened" color
@@ -313,24 +333,37 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     return { paths, headColor, headGlowColor };
   }, [animatedProgress, center, radius, color, baseColor, glowColor]);
 
-
-
   /**
-   * Memoized calculation of the position for the "head" element along the arc.
-   * This position is only recalculated if `active`, `animatedProgress`, `center`, `radius`, or `startAngle` changes.
-   * If not active, the head is positioned at the center (though it will likely be hidden).
-   * The position corresponds to the end point of the current `animatedProgress` on the arc.
+   * Progress Head Positioning
+   * -------------------------
+   * This `useMemo` hook is dedicated to calculating the precise (x, y) coordinates for the moving "head"
+   * of the progress bar. The head is the circular element that travels along the leading edge of the arc.
+   *
+   * It takes the linear `animatedProgress` value (from 0 to 100) and translates it into an angular position
+   * on the circular path. This is done by converting the progress percentage into a corresponding angle in
+   * radians and then using the `polarToCartesian` helper function to get the final SVG coordinates.
+   * This calculation is memoized, so it only runs when `animatedProgress` changes, ensuring efficient
+   * updates during the animation. The resulting `headPos` object is used to position the head element in the SVG.
    */
-  // Head position as a derived value (clockwise)
-
-  
   const headPos = React.useMemo(() => {
     if (!active) return { x: center, y: center };
     const endAngle = startAngle + (2 * Math.PI * (animatedProgress / 100));
     return polarToCartesian(center, center, radius, endAngle);
   }, [active, animatedProgress, center, radius, startAngle]);
 
-  // Helper to lighten a hex color
+  /**
+   * Color Manipulation Utilities
+   * ----------------------------
+   * This collection of helper functions provides the necessary tools for dynamic color styling throughout the component.
+   * They are defined directly within the component as they are closely tied to its rendering logic and are not
+   * needed elsewhere in the application. This co-location makes the component more self-contained.
+   *
+   * - `lightenColor`: Increases the brightness of a hex color, used for the main progress arc and the active section highlight.
+   * - `hexToRgba`: Converts a hex color string into an `rgba()` string with a specified alpha (transparency),
+   *   used for creating glow and border effects.
+   * - `darkenColor` & `mixWithBlack`: These are used for creating the dark, subtle borders on the inactive checkpoints,
+   *   providing different methods of achieving a darker shade.
+   */
   function lightenColor(hex: string, amount: number, alpha?: number) {
     let col = hex.replace('#', '');
     if (col.length === 3) col = col.split('').map(x => x + x).join('');

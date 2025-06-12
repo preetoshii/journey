@@ -93,7 +93,24 @@ function getPhaseInfo(progress: number) {
 }
 
 /**
- * MoonNode
+ * @component MoonNode
+ * @description This component serves as the primary renderer and state controller for a single moon element
+ * within the application's visualization. It is a highly stateful and animated component that encapsulates
+ * all the logic for a moon's appearance, interaction, and transition between different states (e.g.,
+ * from being part of the overview to being the 'focused' moon in the detail view).
+ *
+ * It combines several sub-components to build the complete visual:
+ *  - `motion.div`: The root element from Framer Motion, handling all positional, scaling, and opacity animations.
+ *  - `MoonAnimatedBackground`: A dynamic, decorative background that activates when the moon is focused.
+ *  - `ArcProgressBar`: The circular progress bar that displays the completion of the associated goal.
+ *  - `RotatingSubtitle`: An animated subtitle that provides context for the moon's current progress phase.
+ *
+ * The component's behavior is heavily dictated by props passed down from its parent (`MoonVisualizer`),
+ * such as `isFocused`, `isDot`, `targetX`, `targetY`, and `targetScale`. These props determine whether the moon
+ * should render as a large, interactive element, a small, passive dot, or something in between, and
+ * control its position and size on the screen, allowing for the complex choreographed animations between
+ * different states.
+ *
  * Renders a single moon node with animation and click logic.
  */
 export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
@@ -121,7 +138,18 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
   // Use a longer animation duration for progress boost during cutscene
   const progressBarAnimationDuration = isCutsceneActive ? 1.5 : 1.3;
 
-  // Listen for pulse trigger from store
+  /**
+   * Store-Driven Pulse Animation
+   * ----------------------------
+   * This effect listens for a global state change (`pulseMoons` from the Zustand store) to trigger a
+   * visual "pulse" animation on a specific moon. This is an example of externally controlled animation,
+   * where another part of the app (e.g., a cutscene or a summary screen) can command a moon to highlight
+   * itself without direct prop drilling.
+   *
+   * When the `pulseMoons` store state indicates this moon's ID should pulse, the local `pulse` state is
+   * set to true, triggering a CSS animation. A timeout is then set to turn the pulse off and reset the
+   * state in the global store, effectively making it a single-shot animation per trigger.
+   */
   React.useEffect(() => {
     if (pulseMoons[node.id]) {
       setPulse(true);
@@ -139,7 +167,21 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
     console.log(`[MoonNode] moonOrderIndex:`, moonOrderIndex);
   }, [moonOrderIndex]);
 
-  // Effect to handle focus changes for tap animation
+  /**
+   * Staged Animation on Focus
+   * -------------------------
+   * This series of `useEffect` hooks creates a choreographed animation sequence when a moon becomes the `isFocused`
+   * element in the detail view. Instead of everything happening at once, these effects manage local state
+   * (`tapAnim`, `bgActive`, `arcActive`) with deliberate timing to create a more polished visual experience.
+   *
+   * 1. `tapAnim` (Immediate): A visual effect on the moon's border/background is triggered instantly.
+   * 2. `bgActive` (Immediate): The animated, decorative background (`MoonAnimatedBackground`) is activated.
+   * 3. `arcActive` (Delayed): The `ArcProgressBar` is faded in after a 600ms delay. This slight pause ensures
+   *    the moon has finished its main positional and scaling animation, so the progress bar appears smoothly
+   *    on a stable element rather than animating in while the moon itself is still in motion.
+   *
+   * When `isFocused` becomes false, all these states are reset, hiding the decorative elements.
+   */
   React.useEffect(() => {
     if (isFocused) {
       setTapAnim(true);
@@ -173,6 +215,24 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
   const moonTitleFontSize = "1.6rem";
   const moonSubtitleFontSize = "0.95rem";
 
+  /**
+   * Click Interaction Handler
+   * -------------------------
+   * This function defines the core user interaction for a moon in the overview. When a moon is clicked,
+   * it orchestrates the transition from the 'overview' mode to the 'detail' mode, with this moon as the
+   * central focus.
+   *
+   * The process involves several steps:
+   * 1. Set Global Mode: It calls `setMode('detail')` on the global store, which triggers UI-wide changes,
+   *    such as the appearance of the back button and the re-positioning of all moons.
+   * 2. Set Focused Moon: It informs the store which moon should be the focus by calling `setFocusedMoonIndex`
+   *    with its own `moonOrderIndex`. This allows the `MoonVisualizer` to calculate the correct positions
+   *    for all moons in the detail view.
+   * 3. Scroll to Detail Card: It finds the first detail content card associated with this moon in the DOM
+   *    and programmatically scrolls the container to bring that card into view. This provides a seamless
+   *    transition from the visual moon to its corresponding textual content. An `isAutoScrolling` flag is
+   *    used to temporarily disable user-scroll-based mode changes during this automated scroll.
+   */
   const handleClick = () => {
     if (node.role === 'moon') {
       setMode('detail');
@@ -206,6 +266,25 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
   if (node.id === 'moon3') subtitleDelay = 400;
 
   const isDimmed = hoveredMoonId && hoveredMoonId !== node.id;
+  
+  /**
+   * Framer Motion Animation & Layout
+   * --------------------------------
+   * This `motion.div` is the core animated container for the entire MoonNode. It uses Framer Motion's `layoutId`
+   * prop, which allows Framer to recognize this moon as the same element across different renders, enabling
+   * smooth "magic motion" transitions between the overview and detail layouts.
+   *
+   * - `animate`: This prop drives the primary animation. The `x`, `y`, `opacity`, and `scale` values are calculated
+   *   based on the component's state (e.g., `isFocused`, `isDimmed`). When these target values change, Framer Motion
+   *   animates the component from its old state to the new one.
+   * - `whileHover`: Provides a simple, declarative way to add interactivity, scaling the moon up slightly
+   *   when the user hovers over it. This is disabled during cutscenes or when the moon is a 'dot'.
+   * - `transition`: This is key to the component's feel. It specifies the physics of the animation, using a `spring`
+   *   model with defined `stiffness`, `damping`, and `mass`. This is what gives the moons their characteristic
+   *   fluid, slightly bouncy movement, which feels more natural than a simple linear timing function.
+   * - `onClick`, `onMouseEnter`, `onMouseLeave`: These handlers are wired up to the component's interaction logic,
+   *   but are disabled during cutscenes to prevent user interference.
+   */
   return (
     <motion.div
       layoutId={node.id}

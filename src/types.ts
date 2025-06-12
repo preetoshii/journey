@@ -1,56 +1,64 @@
 /*
   types.ts
   -------------------
-  This file defines all shared types and interfaces for the ZoomWorld system.
-  It is the single source of truth for node, position, and zoom state types.
+  This file defines all shared types and interfaces for the application.
+  It is the single source of truth for node and state types.
 
   HOW TO USE:
-  - Import types from this file wherever you need to type zoom nodes, state, or positions.
-  - Update this file if you add new node types, zoom levels, or state fields.
+  - Import types from this file wherever you need to type nodes or state.
+  - Update this file if you add new node types or state fields.
 
   WHAT IT HANDLES:
-  - Zoom level enum
   - Position interface
   - ZoomNode interface (for sun/moon nodes)
-  - ZoomState interface (for Zustand store)
+  - JourneyModeState interface (for Zustand store)
 */
 
-// --- Zoom level enum ---
-export type ZoomLevel = "level1" | "level2" | "level3";
+import type { Accomplishment } from './types/accomplishmentTypes';
+import type { CutsceneStep } from './store/useJourneyModeStore';
 
-// --- Position in 2D space ---
+// --- Position interface ---
 export interface Position {
-  x: number; // X coordinate
-  y: number; // Y coordinate
+  x: number;
+  y: number;
 }
 
-// --- Node (sun or moon) in the zoom world ---
-export type NodeRole = "sun" | "moon";
-
-// New Goal interface
-export type GoalStatus = "active" | "completed";
-
-export interface Goal {
-  title: string;
-  status: GoalStatus;
-  date?: string; // Only for completed
-  recap?: string;
-  progressText?: string; // Only for active goals, to show progress
-}
-
+// --- ZoomNode interface ---
 export interface ZoomNode {
-  id: string; // Unique node ID
-  role: "sun" | "moon"; // Node type
-  title: string; // Display title
-  subtitle: string; // Display subtitle
-  positions: Record<ZoomLevel, Position>; // Position for each zoom level
-  color: string; // Node color
-  progress?: number; // Optional progress value (0-100)
-  goals?: Goal[]; // Use new Goal type
-  growthNarrative?: {
-    'last month'?: string;
-    'last 6 months'?: string;
-    'all time'?: string;
-    [key: string]: string | undefined;
-  };
+  id: string;
+  role: 'sun' | 'moon';
+  title: string;
+  subtitle: string;
+  color: string;
+  positions: Record<string, Position>;
+  progress?: number;
+  goals?: Goal[];
+}
+
+// --- Goal interface ---
+export interface Goal {
+  id: string;
+  title: string;
+  progress: number;
+  completed: boolean;
+}
+
+// --- JourneyModeState interface ---
+export interface JourneyModeState {
+  mode: 'overview' | 'detail';
+  focusedMoonIndex: number;
+  isDebugMode: boolean;
+  scrollContainer: HTMLDivElement | null;
+  isAutoScrolling: boolean;
+  isScrollSnapEnabled: boolean;
+  isClickToCenterEnabled: boolean;
+  activeCardKey: string | null;
+  isMoonHovered: boolean;
+  isCutsceneActive: boolean;
+  currentAccomplishments: Accomplishment[] | null;
+  cutsceneStep: CutsceneStep;
+  currentAnimatingAccomplishmentIndex: number;
+  pendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> | null;
+  nodes: ZoomNode[];
+  pulseMoons: Record<string, boolean>;
 } 

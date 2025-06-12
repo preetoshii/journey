@@ -36,6 +36,30 @@ const dummyAccomplishmentsData: Accomplishment[] = [
   },
 ];
 
+/**
+ * @component App
+ * @description The root component of the application, serving as the main orchestrator for layout,
+ * state, and global interactions.
+ *
+ * This component's primary responsibilities are:
+ *
+ * 1.  **Layout Assembly:** It establishes the fundamental page structure using a CSS grid. It renders the
+ *     key layout components: `BackgroundLayer` for the visual backdrop, `OverviewArea` for the top
+ *     100vh section, `DetailArea` for the scrollable content below, and the `MoonVisualizer` as a
+ *     sticky overlay that animates across both sections.
+ *
+ * 2.  **Scroll-Driven State Management:** It contains the critical `useEffect` hook that listens to the
+ *     main container's scroll events. This logic is the heart of the primary user interaction, automatically
+ *     transitioning the application's global state between 'overview' and 'detail' modes based on the
+ *     user's scroll position.
+ *
+ * 3.  **Global Event Handling & Debugging:** It sets up global keyboard listeners for developer use.
+ *     This includes toggling a debug menu, forcing specific application states (like focusing on a
+ *     particular moon), and triggering application-wide events like the accomplishment cutscene.
+ *
+ * It pulls state and setters from the `useJourneyModeStore` (Zustand) to react to and update the
+ * application's global state in response to user actions.
+ */
 function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollTopRef = useRef<number>(0); // Ref to store previous scroll top
@@ -55,6 +79,23 @@ function App() {
     isCutsceneActive,
   } = useJourneyModeStore();
 
+  /**
+   * Scroll-Based Mode Switching Logic
+   * ---------------------------------
+   * This `useEffect` hook is the core mechanism that drives the transition between the 'overview' and 'detail'
+   * modes. It attaches a scroll event listener to the main scrollable container.
+   *
+   * The `handleScroll` function checks the scroll position (`scrollTop`) on every scroll event.
+   * - If the user scrolls down from the top, and the scroll position passes a small threshold (`switchToDetailThreshold`),
+   *   it transitions the app to 'detail' mode and focuses on the first moon.
+   * - If the user is in 'detail' mode and scrolls all the way back to the absolute top (`scrollTop < switchToOverviewThreshold`),
+   *   it transitions the app back to 'overview' mode and unfocuses all moons.
+   *
+   * A `prevScrollTopRef` is used to determine the scroll direction ('up' or 'down') to ensure the logic only
+   * fires once when a threshold is crossed in the correct direction. The `isAutoScrolling` flag, controlled
+   * by the store, is crucial for disabling this handler during programmatic scrolls (e.g., after clicking a moon),
+   * preventing race conditions and unintended mode switches.
+   */
   useEffect(() => {
     if (scrollContainerRef.current) {
       setScrollContainer(scrollContainerRef.current);
@@ -107,7 +148,19 @@ function App() {
     };
   }, [setMode, setFocusedMoonIndex, isDebugMode, isAutoScrolling, setScrollContainer]);
 
-  // Debug mode and Cutscene Trigger keyboard listener effect
+  /**
+   * Keyboard Listener for Debugging and Cutscenes
+   * ---------------------------------------------
+   * This `useEffect` hook sets up a global `keydown` event listener to provide developers with keyboard
+   * shortcuts for testing and debugging various application states. This is a common pattern for improving
+   * development velocity by avoiding the need to manually click through UI flows repeatedly.
+   *
+   * - `d`: Toggles the visibility of the main debug menu.
+   * - `a`: Triggers the accomplishment cutscene overlay, feeding it a set of dummy data.
+   * - `0`, `1`, `2`, `3`: (Only in debug mode) Directly set the application state to focus on a specific moon
+   *   or return to the overview, allowing for rapid testing of the `MoonVisualizer` and `DetailArea` layouts.
+   * - `s`, `c`: (Only in debug mode) Toggle experimental features like scroll-snapping.
+   */
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'd') {
@@ -198,6 +251,24 @@ function App() {
           {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}
         </div>
         <DebugMenu />
+        {/**
+         * Main Application Layout & Scroll Container
+         * ------------------------------------------
+         * This `div` is the primary structural element of the application. It functions as the main scroll
+         * container and uses a CSS grid layout (`display: 'grid'`) to achieve the core visual effect of the
+         * application.
+         *
+         * The grid is defined with `gridTemplateRows: '100vh auto'`.
+         * - The first row (`100vh`) is the 'overview' area. It is precisely the height of the viewport,
+         *   containing the initial, non-scrollable view.
+         * - The second row (`auto`) contains the `DetailArea`, which holds all the content that the user
+         *   scrolls through.
+         *
+         * The `MoonVisualizer` is placed within this grid but is styled with `position: 'sticky'` and `top: 0`,
+         * which causes it to "stick" to the top of the viewport as the user scrolls down, creating the
+         * effect of it visually transitioning from the overview area into the detail area. The `scrollContainerRef`
+         * attached here is what enables the scroll-based mode switching logic.
+         */}
         <div
           ref={scrollContainerRef}
           id="scrollContainer"
