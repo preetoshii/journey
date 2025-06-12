@@ -1,6 +1,6 @@
 # Journey Page
 
-An interactive, zoomable interface featuring a central Sun and three Moons. Built with React, TypeScript, and Framer Motion.
+An interactive interface featuring a central Sun and three Moons. Built with React, TypeScript, and Framer Motion.
 
 ## 🚀 Quick Start
 
@@ -25,11 +25,10 @@ An interactive, zoomable interface featuring a central Sun and three Moons. Buil
 
 ## 🎯 Features
 
-- **Interactive Zoom Levels**: Smooth transitions between different views
-- **Magnetic Snapping**: Moons snap into place when dragged
-- **Sound Effects**: Musical feedback on interactions
+- **Interactive Moon System**: Smooth transitions between overview and detail views
 - **Animated Backgrounds**: Dynamic backgrounds for focused moons
 - **Responsive Design**: Works across different screen sizes
+- **Accomplishment Cutscenes**: Animated sequences for celebrating achievements
 
 ## 🛠️ Tech Stack
 
@@ -44,39 +43,38 @@ An interactive, zoomable interface featuring a central Sun and three Moons. Buil
 ```
 src/
 ├── components/
-│   └── ZoomWorld/         # Main zoomable interface
-│       ├── SunMoonNode.tsx    # Individual sun/moon nodes
-│       ├── ZoomControls.tsx   # Zoom in/out controls
-│       └── usePanning.ts      # Panning and snapping logic
-├── types.ts               # TypeScript type definitions
-└── assets/               # Images, fonts, and sounds
+│   ├── Moon/              # Moon visualization components
+│   │   ├── MoonNode.tsx       # Individual moon nodes
+│   │   ├── MoonVisualizer.tsx # Main moon visualization
+│   │   └── ...               # Other moon-related components
+│   ├── Layout/           # Layout components
+│   │   ├── OverviewArea.tsx  # Overview screen
+│   │   └── DetailArea.tsx    # Detail screen
+│   └── Cutscene/         # Cutscene components
+│       └── ...           # Cutscene-related components
+├── store/               # State management
+│   └── useJourneyModeStore.ts
+├── types/              # TypeScript type definitions
+└── assets/            # Images, fonts, and animations
 ```
 
 ## 🎮 How to Use
 
-1. **Level 1 (Overview)**
+1. **Overview Mode**
    - View the central Sun and three Moons
-   - Click any Moon to zoom in
-   - Use the zoom-in button in the bottom right
+   - Click any Moon to enter detail mode
+   - Scroll down to enter detail mode
 
-2. **Level 2 (Detail)**
-   - Drag to pan around
-   - Moons will snap into place when released
+2. **Detail Mode**
+   - View detailed information about each moon
    - Click a Moon to focus it
-   - Use the zoom-out button to return to Level 1
-
-## 🎵 Sound Effects
-
-The interface includes:
-- Pentatonic notes when focusing moons
-- Zoom in/out sounds
-- Button click feedback
+   - Scroll up to return to overview mode
 
 ## 🎨 Styling
 
 - Fonts: Ivar Headline (titles) and Sohne (subtitles)
 - Colors: Custom color scheme for each moon
-- Animations: Spring physics for natural movement
+- Animations: Smooth transitions and effects using Framer Motion
 
 ## 🤝 Contributing
 
