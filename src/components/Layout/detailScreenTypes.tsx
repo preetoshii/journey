@@ -188,6 +188,18 @@ export const DetailScreenGrowth: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
 
 // Connection Screen: Shows how this goal connects to the North Star
 export const DetailScreenConnection: React.FC<{ goal: ZoomNode }> = ({ goal }) => {
+  // North Star statement
+  const northStar = "To become the wild kid at summer camp all those years ago.";
+
+  // Custom connection messages for each moon
+  const connections: Record<string, string> = {
+    'The Confident Leader': `Your journey as The Confident Leader is about reclaiming the boldness and self-expression you had as a wild kid at summer camp. Each step you take in leadership brings you closer to that free, authentic spirit at your core.`,
+    'The Present Partner': `The Present Partner is about rediscovering the playful, fully-present energy you had as a wild kid at summer camp. By being more present with loved ones, you're reconnecting with that same joy and curiosity.`,
+    'The Deep Worker': `The Deep Worker is about channeling the focus and absorption you felt as a wild kid at summer camp—when you could lose yourself in play for hours. Your deep work is a return to that state of flow and wonder.`,
+  };
+
+  const connectionText = connections[goal.title] || `This moon helps you move toward your North Star: ${northStar}`;
+
   return (
     <p style={{
       fontFamily: "'Sohne Buch', sans-serif", // Assuming 'Sohne Buch'
@@ -197,8 +209,8 @@ export const DetailScreenConnection: React.FC<{ goal: ZoomNode }> = ({ goal }) =
       margin: 0, // Remove default paragraph margin
       maxWidth: '80%', // Prevent text from becoming too wide
     }}>
-      {goal.subtitle}
-          </p>
+      {connectionText}
+    </p>
   );
 };
 
@@ -224,9 +236,9 @@ export const DetailScreenActiveGoals: React.FC<{ goal: ZoomNode }> = ({ goal }) 
               fontSize: 20,
               fontWeight: 400,
               color: 'rgba(255,255,255,0.92)',
-              lineHeight: 1.7
+              lineHeight: 1.5
             }}>
-              {goal.title}
+              {preventOrphanThreeWords(goal.title)}
             </p>
             {goal.progressText && (
               <p style={{
@@ -235,10 +247,10 @@ export const DetailScreenActiveGoals: React.FC<{ goal: ZoomNode }> = ({ goal }) 
                 fontStyle: 'italic',
                 fontSize: 18,
                 color: 'rgba(255, 255, 255, 0.45)',
-                lineHeight: 1.6,
+                lineHeight: 1.4,
                 letterSpacing: 0.2
               }}>
-                {goal.progressText}
+                {boldImportant(goal.progressText)}
               </p>
             )}
           </div>
@@ -268,10 +280,10 @@ export const DetailScreenCompletedGoals: React.FC<{ goal: ZoomNode }> = ({ goal 
             <svg width={16} height={16} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
               <path d="M10.076 0.82951C10.6762 0.0381659 11.866 0.0381661 12.4662 0.82951L16.191 5.74027C16.2736 5.84917 16.3707 5.94628 16.4796 6.02888L21.3904 9.75372C22.1817 10.354 22.1817 11.5437 21.3904 12.1439L16.4796 15.8688C16.3707 15.9514 16.2736 16.0485 16.191 16.1574L12.4662 21.0681C11.866 21.8595 10.6762 21.8595 10.076 21.0681L6.35115 16.1574C6.26854 16.0485 6.17144 15.9514 6.06254 15.8688L1.15178 12.1439C0.360432 11.5437 0.360432 10.354 1.15178 9.75372L6.06254 6.02888C6.17144 5.94628 6.26854 5.84917 6.35115 5.74027L10.076 0.82951Z" fill="#DECBA4"/>
             </svg>
-          </motion.div>
+              </motion.div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontStyle: 'italic', fontWeight: 400, fontSize: 18, color: 'rgba(255,255,255,0.45)', marginBottom: 5, letterSpacing: 0.2 }}>{goal.date}</span>
-            <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 20, color: 'rgba(255,255,255,0.92)', lineHeight: 1.7, fontWeight: 400, margin: 0, textAlign: 'left' }}>{goal.title}</span>
+            <span style={{ fontFamily: "'Sohne Buch', sans-serif", fontSize: 20, color: 'rgba(255,255,255,0.92)', lineHeight: 1.5, fontWeight: 400, margin: 0, textAlign: 'left' }}>{preventOrphanThreeWords(goal.title)}</span>
           </div>
         </div>
       ))}
@@ -301,4 +313,23 @@ export const detailScreenTypes = [
     label: 'Connection to North Star',
     component: DetailScreenConnection,
   },
-]; 
+];
+
+// Helper to bold numbers and time units in progress text
+function boldImportant(text: string) {
+  // Regex to match numbers with optional units (e.g., 5 days, 8 checks per hour, 30 mins, 12 days)
+  return text.split(/(\d+\s*(?:checks per hour|days?|mins?|hours?|weeks?|sessions?|more to go|device-free|per hour|per day|per week|[a-zA-Z]+)?)/g).map((part, i) => {
+    if (/^\d+\s*(?:checks per hour|days?|mins?|hours?|weeks?|sessions?|more to go|device-free|per hour|per day|per week|[a-zA-Z]+)?$/.test(part.trim())) {
+      return <strong key={i} style={{ fontWeight: 600 }}>{part}</strong>;
+    }
+    return part;
+  });
+}
+
+// Helper to prevent orphan words by keeping the last three words together
+function preventOrphanThreeWords(text: string) {
+  const words = text.split(' ');
+  if (words.length < 4) return text; // Only apply if 4+ words
+  const lastThree = words.slice(-3).join('\u00A0');
+  return [...words.slice(0, -3), lastThree].join(' ');
+} 

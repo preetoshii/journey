@@ -281,7 +281,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
     ];
 
     let remainingProgress = animatedProgress;
-    const gapSize = 0.075; // Size of the gap in radians (about 4.5 degrees)
+    const gapSize = 0.03; // Size of the gap in radians (about 1.7 degrees)
 
     for (const section of sectionDefs) {
       if (remainingProgress <= 0) break;
@@ -414,18 +414,20 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
       )}
 
       {/* Glow */}
-      {active && arcData.paths.map(path => (
+      {arcData.paths.map((path, index) => (
         <React.Fragment key={path.key}>
           {/* Glow */}
-          <motion.path
-            d={path.d}
-            stroke={path.glowColor}
-            initial={{ strokeWidth: 0 }}
-            animate={{ strokeWidth: thickness * 2.2 }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
-            fill="none"
-            style={{ filter: `blur(6px)` }}
-          />
+          {path.glowColor && (
+            <motion.path
+              d={path.d}
+              stroke={path.glowColor}
+              initial={{ strokeWidth: 0 }}
+              animate={{ strokeWidth: thickness * 2.2 }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              fill="none"
+              style={{ filter: `blur(6px)` }}
+            />
+          )}
           {/* Main arc */}
           <motion.path
             d={path.d}
@@ -434,7 +436,7 @@ export const ArcProgressBar: React.FC<ArcProgressBarProps> = ({
             animate={{ strokeWidth: thickness }}
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             fill="none"
-            strokeLinecap="round"
+            strokeLinecap={index === 0 ? 'round' : 'butt'}
           />
         </React.Fragment>
       ))}

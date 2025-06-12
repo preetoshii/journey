@@ -229,8 +229,8 @@ function App() {
           onClick={handleBackToOverview}
           style={{
             position: 'fixed',
-            top: 24,
-            left: 24,
+            top: 56,
+            left: 56,
             zIndex: 10001,
             background: 'rgba(30,30,30,0.85)',
             color: 'white',

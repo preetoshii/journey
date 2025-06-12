@@ -68,7 +68,7 @@ export const nodes: ZoomNode[] = [
       { title: "Explore why you multitask when feeling anxious.", status: "completed", date: "04/11/25", recap: "Recap coming soon!" },
       { title: "Formulate a plan for a daily digital detox.", status: "completed", date: "04/09/25", recap: "Recap coming soon!" },
       { title: "Plan a focused work session.", status: "completed", date: "04/06/25", recap: "Recap coming soon!" },
-      { title: "Limit phone checks to <5/hour by week's end.", status: "active", recap: "", progressText: "Last week, you averaged 8 checks per hour. You're making progress!" },
+      { title: "Limit phone checks to less than 5 per hour by week's end.", status: "active", recap: "", progressText: "Last week, you averaged 8 checks per hour. You're making progress!" },
       { title: "Spend 30 mins device-free with family daily for 2 weeks.", status: "active", recap: "", progressText: "So far, you've had 4 device-free days. Keep it up, you're building a great habit." },
     ],
     growthNarrative: {
@@ -122,7 +122,7 @@ export const MoonVisualizer = () => {
   const storeNodes = useJourneyModeStore((s) => s.nodes); // Add this line to get nodes from store
 
   // Layout logic for detail mode when a moon is focused
-  const detailMoonX = -420; // X position for the focused moon
+  const detailMoonX = -360; // X position for the focused moon (balanced spacing)
   const dotMoonX = -800;    // X position for the dot moons
   const detailMoonY = 0;    // Centered Y for focused moon
   const dotSpacing = 40;    // Vertical spacing between dots
@@ -262,26 +262,57 @@ export const MoonVisualizer = () => {
         {/* Placeholder for the focused moon's slot */}
         <AnimatePresence>
           {mode === 'detail' && focusedMoonIndex > 0 && (
-            <motion.div
-              key={`placeholder-dot-${focusedMoonIndex - 1}`} // Key by the slot index (0-based)
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{
-                opacity: 1,
-                scale: 1, 
-                x: dotMoonX,
-                y: dotSlotYPositions[focusedMoonIndex - 1], // Position in the focused moon's actual slot
-              }}
-              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.5 }}
-              style={{
-                position: "absolute",
-                width: placeholderDotSize,
-                height: placeholderDotSize,
-                borderRadius: "50%",
-                backgroundColor: "rgba(80, 80, 80, 0.9)", // Dark grey placeholder
-                pointerEvents: 'none',
-              }}
-            />
+            Array.from({ length: numberOfMoons }).map((_, i) => {
+              if (i === focusedMoonIndex - 1) {
+                // White dot for the current (empty) slot
+                return (
+                  <motion.div
+                    key={`placeholder-dot-active-${i}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      x: dotMoonX,
+                      y: dotSlotYPositions[i],
+                    }}
+                    exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.5 }}
+                    style={{
+                      position: "absolute",
+                      width: placeholderDotSize,
+                      height: placeholderDotSize,
+                      borderRadius: "50%",
+                      backgroundColor: "#fff",
+                      pointerEvents: 'none',
+                    }}
+                  />
+                );
+              } else {
+                // Dark gray dot for the other moons
+                return (
+                  <motion.div
+                    key={`placeholder-dot-inactive-${i}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      x: dotMoonX,
+                      y: dotSlotYPositions[i],
+                    }}
+                    exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.5 }}
+                    style={{
+                      position: "absolute",
+                      width: placeholderDotSize,
+                      height: placeholderDotSize,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(80, 80, 80, 0.9)",
+                      pointerEvents: 'none',
+                    }}
+                  />
+                );
+              }
+            })
           )}
         </AnimatePresence>
       </motion.div>
