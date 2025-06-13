@@ -108,6 +108,7 @@ const MetaJourneyOverlay = () => {
           maxWidth: 480,
           minWidth: 380,
           zIndex: 2,
+          pointerEvents: 'none',
         }}
       >
         <h1 style={{
@@ -148,7 +149,6 @@ const MetaJourneyOverlay = () => {
           width: '100vw',
           height: '100vh',
           zIndex: 1,
-          pointerEvents: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
