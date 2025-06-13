@@ -64,6 +64,12 @@ export interface JourneyModeStore {
 
   metaJourneyProgress: number;
   setMetaJourneyProgress: (progress: number) => void;
+  
+  // Meta Journey Stage Info
+  discoveryEndProgress: number;
+  actionEndProgress: number;
+  currentStage: 'discovery' | 'action' | 'integration';
+  setStageProgressThresholds: (discoveryEnd: number, actionEnd: number) => void;
 }
 
 /**
@@ -221,7 +227,7 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
 
   updateNodeProgress: (nodeId, newProgress) => {
     set((state) => ({
-      nodes: state.nodes.map(node =>
+      nodes: state.nodes.map(node => 
         node.id === nodeId ? { ...node, progress: newProgress } : node
       ),
     }));
@@ -232,5 +238,23 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   toggleDebugSidebar: () => set((state) => ({ isDebugSidebarOpen: !state.isDebugSidebarOpen })),
 
   metaJourneyProgress: 0.5,
-  setMetaJourneyProgress: (progress) => set({ metaJourneyProgress: progress }),
+  setMetaJourneyProgress: (progress) => {
+    const { discoveryEndProgress, actionEndProgress } = get();
+    let stage: 'discovery' | 'action' | 'integration' = 'integration';
+    if (progress <= discoveryEndProgress) {
+      stage = 'discovery';
+    } else if (progress <= actionEndProgress) {
+      stage = 'action';
+    }
+    set({ metaJourneyProgress: progress, currentStage: stage });
+  },
+
+  discoveryEndProgress: 0.33,
+  actionEndProgress: 0.66,
+  currentStage: 'action',
+  setStageProgressThresholds: (discoveryEnd, actionEnd) => {
+    set({ discoveryEndProgress: discoveryEnd, actionEndProgress: actionEnd });
+    // Recalculate current stage with new thresholds
+    get().setMetaJourneyProgress(get().metaJourneyProgress);
+  },
 })); 

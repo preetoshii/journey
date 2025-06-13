@@ -50,6 +50,8 @@ const OverviewArea: React.FC = () => {
   const mode = useJourneyModeStore((s) => s.mode);
   const isCutsceneActive = useJourneyModeStore((s) => s.isCutsceneActive);
   const setMode = useJourneyModeStore((s) => s.setMode);
+  const currentStage = useJourneyModeStore(s => s.currentStage);
+
   return (
     <div
       style={{
@@ -84,7 +86,7 @@ const OverviewArea: React.FC = () => {
           animate={{ 
             scale: [1, 1.18, 1], 
             rotate: [0, 180],
-            opacity: mode === 'detail' ? 0 : 1, // Fades out in detail, stays in meta
+            opacity: mode !== 'overview' ? 0 : 1, // Fades out in detail and meta
           }}
           transition={{
             scale: { duration: 2.2, ease: 'easeInOut', repeat: Infinity },
@@ -125,7 +127,7 @@ const OverviewArea: React.FC = () => {
             To become the wild kid at summer camp all those years ago.
           </div>
           {/* Meta Journey Button */}
-          <button
+          <motion.button
             style={{
               marginTop: 32,
               padding: '0.9em 2.8em 1.2em 2em',
@@ -142,7 +144,11 @@ const OverviewArea: React.FC = () => {
               gap: 12,
               boxShadow: '0 2px 16px 0 rgba(0,0,0,0.18)',
               cursor: 'pointer',
-              transition: 'background 0.18s',
+            }}
+            whileHover={{
+              scale: 1.03,
+              background: 'rgba(32,32,32,0.95)',
+              transition: { duration: 0.2 }
             }}
             onClick={() => setMode('meta')}
           >
@@ -152,8 +158,8 @@ const OverviewArea: React.FC = () => {
               <rect x="9" y="8" width="3" height="11" rx="1.5" fill="#fff" fillOpacity="0.85" />
               <rect x="15" y="3" width="3" height="16" rx="1.5" fill="#fff" />
             </svg>
-            {metaJourneyTextMap[metaJourneyState]}
-          </button>
+            {metaJourneyTextMap[currentStage]}
+          </motion.button>
         </motion.div>
       </motion.div>
     </div>

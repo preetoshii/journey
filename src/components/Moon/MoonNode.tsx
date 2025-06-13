@@ -250,7 +250,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
   };
 
   const metaTransition = { type: 'spring', damping: 30, stiffness: 160 };
-
+  
   /**
    * Framer Motion Animation & Layout
    * --------------------------------
