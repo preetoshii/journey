@@ -7,25 +7,25 @@ import styles from './DebugSidebar.module.css';
 const defaultAccomplishments = [
   {
     id: 'accomplishment1',
-    title: 'Mastered Mindfulness',
-    recap: 'After weeks of practice, you can now stay present and focused for extended periods, significantly reducing daily stress.',
+    title: 'Uncover why you hesitate to take the lead',
+    recap: 'You identified that your hesitation stems from a fear of judgment and a tendency to prioritize harmony over decisive action. This insight has helped you recognize when these patterns emerge.',
     goals: [
       { goalId: 'moon1', innerWorkAmount: 10 },
-      { goalId: 'moon2', innerWorkAmount: 5 },
-    ],
+      { goalId: 'moon2', innerWorkAmount: 5 }
+    ]
   },
   {
     id: 'accomplishment2',
-    title: 'Effective Communication Breakthrough',
-    recap: 'You successfully navigated a series of tough conversations, leading to better team collaboration and understanding.',
-    goals: [{ goalId: 'moon3', innerWorkAmount: 8 }],
+    title: 'Notice when you avoid conflict to keep the peace',
+    recap: 'You\'ve become more aware of your tendency to sidestep disagreements, particularly in team settings. This awareness has helped you start addressing conflicts more directly.',
+    goals: [{ goalId: 'moon3', innerWorkAmount: 8 }]
   },
   {
     id: 'accomplishment3',
-    title: 'Project Phoenix Completed',
-    recap: 'Successfully launched Project Phoenix ahead of schedule, showcasing strong leadership and execution.',
-    goals: [{ goalId: 'moon1', innerWorkAmount: 7 }],
-  },
+    title: 'Explore your fear of judgment',
+    recap: 'You\'ve examined how the fear of being judged affects your decision-making and leadership style. This exploration has revealed patterns that you can now work to change.',
+    goals: [{ goalId: 'moon1', innerWorkAmount: 7 }]
+  }
 ];
 
 /**
