@@ -37,6 +37,7 @@ interface MoonNodeProps {
   targetX?: number;
   targetY?: number;
   targetScale?: number;
+  targetOpacity?: number; // Add opacity prop
 }
 
 // Shared constants
@@ -90,7 +91,7 @@ function hexToRgba(hex: string, alpha: number) {
  *
  * Renders a single moon node with animation and click logic.
  */
-export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
+export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, isFocused = false, isDot = false, targetX, targetY, targetScale, targetOpacity }: MoonNodeProps) => {
   const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling } = useJourneyModeStore();
   const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
   const pulseMoons = useJourneyModeStore(s => s.pulseMoons);
@@ -236,7 +237,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
   if (node.id === 'moon2') subtitleDelay = 200;
   if (node.id === 'moon3') subtitleDelay = 400;
 
-  const isDimmed = hoveredMoonId && hoveredMoonId !== node.id;
+  const isDimmed = hoveredMoonId !== null && hoveredMoonId !== node.id;
   
   /**
    * Framer Motion Animation & Layout
@@ -256,35 +257,65 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
    * - `onClick`, `onMouseEnter`, `onMouseLeave`: These handlers are wired up to the component's interaction logic,
    *   but are disabled during cutscenes to prevent user interference.
    */
+  const animationProps = {
+    x: currentPosition.x,
+    y: currentPosition.y,
+    scale: scale,
+    opacity: targetOpacity ?? (isDot ? 0.7 : 1),
+  };
+
+  const handleTap = () => {
+    if (node.role === 'moon') {
+      setMode('detail');
+      if (moonOrderIndex) {
+        setFocusedMoonIndex(moonOrderIndex);
+      }
+
+      if (scrollContainer && node.id) {
+        // Dynamically find the first detail screen key
+        const firstScreenKey = detailScreenTypes[0]?.key;
+        const firstCardKey = `${node.id}-${firstScreenKey}`;
+        const firstCardElement = document.querySelector(`[data-card-key="${firstCardKey}"]`);
+        
+        if (firstCardElement) {
+          setIsAutoScrolling(true);
+          firstCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.log(`Scrolling to first card of ${node.id}`);
+
+          setTimeout(() => {
+            setIsAutoScrolling(false);
+          }, 1000);
+        } else {
+          console.warn(`First detail card for moon ${node.id} not found for scrolling.`);
+        }
+      }
+    }
+  };
+
   return (
     <motion.div
       layoutId={node.id}
-      initial={false}
-      animate={{
-        x: currentPosition.x,
-        y: currentPosition.y,
-        opacity: isDimmed && !isCutsceneActive ? 0.45 : 1,
-        scale: scale
-      }}
-      whileHover={!isCutsceneActive && !Boolean(isDot) ? { scale: scale * 1.06 } : {}}
-      transition={{
-        x: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
-        opacity: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
-        scale: { type: "spring", stiffness: 240, damping: 24 }
-      }}
-      onClick={!isCutsceneActive ? handleClick : undefined}
-      onMouseEnter={!isCutsceneActive ? onMouseEnter : undefined}
-      onMouseLeave={!isCutsceneActive ? onMouseLeave : undefined}
+      key={node.id}
+      data-moon-node={true}
+      className={`moon-node-container ${pulse ? 'pulse' : ''}`}
       style={{
-        position: "absolute",
-        cursor: !isCutsceneActive ? "pointer" : "default",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "1rem",
-        mixBlendMode: 'screen',
+        position: 'absolute',
+        width: moonCircleSize,
+        height: moonCircleSize,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '50%',
+        cursor: isDot ? 'default' : 'pointer',
         pointerEvents: isCutsceneActive ? 'none' : 'auto',
       }}
+      initial={false} // Prevent initial animation on load
+      animate={animationProps}
+      transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+      whileHover={!isCutsceneActive && !Boolean(isDot) ? { scale: scale * 1.06 } : {}}
+      onTap={handleTap}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {/* Pulse effect overlay */}
       <motion.div

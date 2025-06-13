@@ -4,6 +4,7 @@ import BackgroundLayer from './components/Layout/BackgroundLayer';
 import { MoonVisualizer } from './components/Moon/MoonVisualizer';
 import AccomplishmentCutsceneOverlay from './components/Cutscene/AccomplishmentCutsceneOverlay';
 import DebugSidebar from './components/Debug/DebugSidebar';
+import MetaJourneyOverlay from './components/MetaJourneyOverlay';
 import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 
@@ -124,6 +125,7 @@ function App() {
   }, [setMode, setFocusedMoonIndex, isDebugMode, isAutoScrolling, setScrollContainer]);
 
   const currentGlobalMode = useJourneyModeStore((s) => s.mode);
+  const isMetaMode = currentGlobalMode === 'meta';
 
   // Handler for Back button
   const handleBackToOverview = () => {
@@ -140,6 +142,7 @@ function App() {
       <div className="App" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
         <BackgroundLayer />
         <AccomplishmentCutsceneOverlay />
+        {isMetaMode && <MetaJourneyOverlay />}
         {/**
          * Main Application Layout & Scroll Container
          * ------------------------------------------
@@ -164,7 +167,7 @@ function App() {
           style={{
             width: '100vw', 
             height: '100vh', 
-            overflowY: isCutsceneActive ? 'hidden' : 'auto', 
+            overflowY: isCutsceneActive || isMetaMode ? 'hidden' : 'auto', 
             overflowX: 'hidden', 
             position: 'relative', 
             zIndex: 1,

@@ -18,7 +18,7 @@ export type CutsceneStep = 'idle' | 'starsAppear' | 'starsPause' | 'starsFly' | 
  * share a consistent and predictable state.
  */
 export interface JourneyModeStore {
-  mode: 'overview' | 'detail';
+  mode: 'overview' | 'detail' | 'meta';
   focusedMoonIndex: number; // 0 for sun/overview, 1-3 for moons in detail
   isDebugMode: boolean;
   scrollContainer: HTMLDivElement | null;
@@ -36,7 +36,7 @@ export interface JourneyModeStore {
   nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
 
   // Actions
-  setMode: (mode: 'overview' | 'detail') => void;
+  setMode: (mode: 'overview' | 'detail' | 'meta') => void;
   setFocusedMoonIndex: (index: number) => void;
   toggleDebugMode: () => void;
   setScrollContainer: (container: HTMLDivElement | null) => void;

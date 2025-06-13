@@ -38,9 +38,18 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 
+// Placeholder for meta journey state
+const metaJourneyState = 'discovery'; // Change to 'action' or 'integration' to test
+const metaJourneyTextMap = {
+  discovery: 'Discovery Stage',
+  action: 'Action Stage',
+  integration: 'Integration Stage',
+};
+
 const OverviewArea: React.FC = () => {
   const mode = useJourneyModeStore((s) => s.mode);
   const isCutsceneActive = useJourneyModeStore((s) => s.isCutsceneActive);
+  const setMode = useJourneyModeStore((s) => s.setMode);
   return (
     <div
       style={{
@@ -63,7 +72,7 @@ const OverviewArea: React.FC = () => {
           alignItems: 'center',
           zIndex: 10,
         }}
-        animate={{ opacity: isCutsceneActive ? 0 : (mode === 'detail' ? 0 : 1) }}
+        animate={{ opacity: isCutsceneActive ? 0 : 1 }}
         transition={{ duration: 0.5, ease: 'easeInOut' }}
       >
         {/* Animated North Star Icon */}
@@ -72,38 +81,80 @@ const OverviewArea: React.FC = () => {
             width: 48, height: 48, marginBottom: 8,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          animate={{ scale: [1, 1.18, 1], rotate: [0, 180] }}
+          animate={{ 
+            scale: [1, 1.18, 1], 
+            rotate: [0, 180],
+            opacity: mode === 'detail' ? 0 : 1, // Fades out in detail, stays in meta
+          }}
           transition={{
             scale: { duration: 2.2, ease: 'easeInOut', repeat: Infinity },
-            rotate: { duration: 1, ease: 'easeInOut', repeat: Infinity, repeatDelay: 13 }
+            rotate: { duration: 1, ease: 'easeInOut', repeat: Infinity, repeatDelay: 13 },
+            opacity: { type: 'spring', damping: 20, stiffness: 100 },
           }}
         >
           <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <polygon points="22,2 27,17 42,22 27,27 22,42 17,27 2,22 17,17" fill="#FF4B9B" />
           </svg>
         </motion.div>
-        <div style={{
-          fontFamily: 'Sohne, sans-serif',
-          fontWeight: 400,
-          fontSize: 16,
-          letterSpacing: '0.13em',
-          color: '#aaa',
-          textTransform: 'uppercase',
-          marginBottom: 18
-        }}>
-          NORTH STAR
-        </div>
-        <div style={{
-          fontFamily: 'Ivar Headline, serif',
-          fontWeight: 400,
-          fontSize: 32,
-          color: 'white',
-          textAlign: 'center',
-          maxWidth: 480,
-          lineHeight: 1.3
-        }}>
-          To become the wild kid at summer camp all those years ago.
-        </div>
+        {/* Fade group: label, text, and button */}
+        <motion.div
+          animate={{ opacity: (mode === 'detail' || mode === 'meta') ? 0 : 1 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}
+        >
+          <div style={{
+            fontFamily: 'Sohne, sans-serif',
+            fontWeight: 400,
+            fontSize: 16,
+            letterSpacing: '0.13em',
+            color: '#aaa',
+            textTransform: 'uppercase',
+            marginBottom: 18
+          }}>
+            NORTH STAR
+          </div>
+          <div style={{
+            fontFamily: 'Ivar Headline, serif',
+            fontWeight: 400,
+            fontSize: 32,
+            color: 'white',
+            textAlign: 'center',
+            maxWidth: 480,
+            lineHeight: 1.3
+          }}>
+            To become the wild kid at summer camp all those years ago.
+          </div>
+          {/* Meta Journey Button */}
+          <button
+            style={{
+              marginTop: 32,
+              padding: '0.9em 2.8em 1.2em 2em',
+              borderRadius: 28,
+              background: 'rgba(24,24,24,0.92)',
+              color: 'white',
+              fontFamily: 'Sohne, sans-serif',
+              fontWeight: 400,
+              fontSize: 18,
+              border: 'none',
+              outline: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              boxShadow: '0 2px 16px 0 rgba(0,0,0,0.18)',
+              cursor: 'pointer',
+              transition: 'background 0.18s',
+            }}
+            onClick={() => setMode('meta')}
+          >
+            {/* Simple placeholder icon (bar chart) */}
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="13" width="3" height="6" rx="1.5" fill="#fff" fillOpacity="0.7" />
+              <rect x="9" y="8" width="3" height="11" rx="1.5" fill="#fff" fillOpacity="0.85" />
+              <rect x="15" y="3" width="3" height="16" rx="1.5" fill="#fff" />
+            </svg>
+            {metaJourneyTextMap[metaJourneyState]}
+          </button>
+        </motion.div>
       </motion.div>
     </div>
   );

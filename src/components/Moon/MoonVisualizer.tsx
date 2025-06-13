@@ -136,11 +136,17 @@ export const MoonVisualizer = () => {
           let targetX = node.positions[currentLevel].x;
           let targetY = node.positions[currentLevel].y;
           let targetScale = 1;
+          let targetOpacity = 1; // Default to fully visible
           let isFocused = false;
           let isDot = false;
 
-          // In overview mode, all moons use their default L1 positions.
-          if (mode === 'overview' || focusedMoonIndex === 0) {
+          if (mode === 'meta') {
+            // In meta mode, move moons down and fade them out.
+            targetY = node.positions[currentLevel].y + 200;
+            targetOpacity = 0;
+            targetScale = 1; // Keep original scale, don't shrink
+          } else if (mode === 'overview' || focusedMoonIndex === 0) {
+            // In overview mode, all moons use their default L1 positions.
             targetX = node.positions[currentLevel].x;
             targetY = node.positions[currentLevel].y;
             targetScale = 1;
@@ -195,6 +201,7 @@ export const MoonVisualizer = () => {
               targetX={targetX}
               targetY={targetY}
               targetScale={targetScale}
+              targetOpacity={targetOpacity}
             />
           );
         })}
