@@ -41,6 +41,10 @@ export interface Goal {
   title: string;
   progress: number;
   completed: boolean;
+  date?: string;
+  recap?: string;
+  status?: string;
+  progressText?: string;
 }
 
 // --- JourneyModeState interface ---

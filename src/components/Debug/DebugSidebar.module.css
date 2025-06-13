@@ -1,0 +1,146 @@
+.debugOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(20, 24, 34, 0.72);
+  z-index: 19999;
+  opacity: 1;
+  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+.debugOverlay--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.debugSidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 480px;
+  background: rgba(24, 28, 39, 0.72);
+  backdrop-filter: blur(16px);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.18);
+  z-index: 20000;
+  border-top-left-radius: 18px;
+  border-bottom-left-radius: 18px;
+  padding: 32px 40px 32px 40px;
+  display: block;
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.debugSidebar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.debugSidebar--hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.closeButton {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.debugTitle {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.card {
+  background: #23293A;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  margin-bottom: 18px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.cardHeader {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 18px 18px 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.18s;
+}
+
+.cardHeader:hover {
+  background: #23293A44;
+}
+
+.cardHeader:focus, .cardHeader:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.cardContent {
+  padding: 0 18px 18px 18px;
+  max-height: none;
+  opacity: 1;
+  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1);
+  overflow: visible;
+}
+
+.cardContent--collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.chevron {
+  display: inline-block;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+.chevron--open {
+  transform: rotate(90deg);
+}
+
+.chevron--closed {
+  transform: rotate(0deg);
+}
+
+/* Remove focus highlight from the debug gear button */
+button[aria-label="Toggle Debug Sidebar"]:focus, 
+button[aria-label="Toggle Debug Sidebar"]:active {
+  outline: none;
+  box-shadow: none;
+}
+
+button[aria-label="Toggle Debug Sidebar"] {
+  transition: background 0.18s, transform 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+button[aria-label="Toggle Debug Sidebar"]:hover {
+  background: #31384a;
+}
+button[aria-label="Toggle Debug Sidebar"]:active {
+  transform: scale(0.93);
+} 

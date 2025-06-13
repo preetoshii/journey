@@ -4,7 +4,7 @@ import BackgroundLayer from './components/Layout/BackgroundLayer';
 import { MoonVisualizer } from './components/Moon/MoonVisualizer';
 import AccomplishmentCutsceneOverlay from './components/Cutscene/AccomplishmentCutsceneOverlay';
 import ScrollIndicatorLottie from './components/ScrollIndicatorLottie';
-import DebugMenu from './components/Cutscene/DebugMenu';
+import DebugSidebar from './components/Debug/DebugSidebar';
 import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
 
@@ -77,6 +77,8 @@ function App() {
     toggleClickToCenter,
     triggerCutscene,
     isCutsceneActive,
+    openDebugSidebar,
+    toggleDebugSidebar,
   } = useJourneyModeStore();
 
   /**
@@ -148,73 +150,6 @@ function App() {
     };
   }, [setMode, setFocusedMoonIndex, isDebugMode, isAutoScrolling, setScrollContainer]);
 
-  /**
-   * Keyboard Listener for Debugging and Cutscenes
-   * ---------------------------------------------
-   * This `useEffect` hook sets up a global `keydown` event listener to provide developers with keyboard
-   * shortcuts for testing and debugging various application states. This is a common pattern for improving
-   * development velocity by avoiding the need to manually click through UI flows repeatedly.
-   *
-   * - `d`: Toggles the visibility of the main debug menu.
-   * - `a`: Triggers the accomplishment cutscene overlay, feeding it a set of dummy data.
-   * - `0`, `1`, `2`, `3`: (Only in debug mode) Directly set the application state to focus on a specific moon
-   *   or return to the overview, allowing for rapid testing of the `MoonVisualizer` and `DetailArea` layouts.
-   * - `s`, `c`: (Only in debug mode) Toggle experimental features like scroll-snapping.
-   */
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'd') {
-        toggleDebugMode();
-      } else if (event.key.toLowerCase() === 'a') {
-        console.log('[App] \'A\' key pressed, triggering cutscene with dummy data.');
-        triggerCutscene(dummyAccomplishmentsData);
-      } 
-      // This block should be separate from the A key, but still within the main keydown handler
-      if (useJourneyModeStore.getState().isDebugMode) {
-          // Check for debug-mode specific keys (0,1,2,3,s,c) only if isDebugMode is true
-          // This was likely intended to be active only when debug mode is on, 
-          // and not exclusively an 'else' to the 'a' key.
-          switch (event.key.toLowerCase()) {
-            case '0':
-              setFocusedMoonIndex(0);
-              setMode('overview');
-              console.log('Debug: Focus Moon 0, Overview Mode');
-              break;
-            case '1':
-              setFocusedMoonIndex(1);
-              setMode('detail');
-              console.log('Debug: Focus Moon 1, Detail Mode');
-              break;
-            case '2':
-              setFocusedMoonIndex(2);
-              setMode('detail');
-              console.log('Debug: Focus Moon 2, Detail Mode');
-              break;
-            case '3':
-              setFocusedMoonIndex(3);
-              setMode('detail');
-              console.log('Debug: Focus Moon 3, Detail Mode');
-              break;
-            case 's':
-              toggleScrollSnap();
-              console.log('Debug: Toggled scroll snap', useJourneyModeStore.getState().isScrollSnapEnabled);
-              break;
-            case 'c':
-              toggleClickToCenter();
-              console.log('Debug: Toggled click-to-center', useJourneyModeStore.getState().isClickToCenterEnabled);
-              break;
-            default:
-              break;
-          }
-        }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [toggleDebugMode, setFocusedMoonIndex, setMode, toggleScrollSnap, toggleClickToCenter, triggerCutscene]);
-
   const currentGlobalMode = useJourneyModeStore((s) => s.mode);
 
   // Handler for Back button
@@ -228,29 +163,10 @@ function App() {
 
   return (
     <>
+      <DebugSidebar />
       <div className="App" style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
         <BackgroundLayer />
         <AccomplishmentCutsceneOverlay />
-        <div style={{ 
-          position: 'fixed', 
-          top: 12, 
-          left: 12, 
-          zIndex: 10000, 
-          background: 'rgba(30,30,30,0.7)', 
-          color: 'white', 
-          padding: '6px 18px', 
-          borderRadius: 8, 
-          fontSize: 16, 
-          fontFamily: 'Sohne, sans-serif', 
-          letterSpacing: '0.08em', 
-          pointerEvents: 'none' 
-        }}>
-          MODE: {currentGlobalMode.toUpperCase()}
-          {isDebugMode ? ' (DEBUG)' : ''}
-          {isDebugMode ? ` | SNAP: ${isScrollSnapEnabled ? 'ON' : 'OFF'}` : ''}
-          {isDebugMode ? ` | CENTER: ${isClickToCenterEnabled ? 'ON' : 'OFF'}` : ''}
-        </div>
-        <DebugMenu />
         {/**
          * Main Application Layout & Scroll Container
          * ------------------------------------------
@@ -320,6 +236,31 @@ function App() {
           ← Back
         </button>
       )}
+      {/* Floating Gear Button (Debug Sidebar Trigger) */}
+      <button
+        onClick={toggleDebugSidebar}
+        style={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          zIndex: 20000,
+          width: 48,
+          height: 48,
+          borderRadius: 12,
+          background: '#23293A',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+          padding: 0,
+        }}
+        aria-label="Toggle Debug Sidebar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-cog h-5 w-5 text-white" aria-hidden="true"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="m17 20.66-1-1.73"></path><path d="M11 10.27 7 3.34"></path><path d="m20.66 17-1.73-1"></path><path d="m3.34 7 1.73 1"></path><path d="M14 12h8"></path><path d="M2 12h2"></path><path d="m20.66 7-1.73 1"></path><path d="m3.34 17 1.73-1"></path><path d="m17 3.34-1 1.73"></path><path d="m11 13.73-4 6.93"></path></svg>
+      </button>
     </>
   );
 }

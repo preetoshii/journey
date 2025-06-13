@@ -51,6 +51,11 @@ export interface JourneyModeState {
   setCutsceneStep: (step: CutsceneStep) => void;
   setCurrentAnimatingAccomplishmentIndex: (index: number) => void;
   updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
+
+  isDebugSidebarOpen: boolean;
+  openDebugSidebar: () => void;
+  closeDebugSidebar: () => void;
+  toggleDebugSidebar: () => void;
 }
 
 /**
@@ -102,6 +107,11 @@ export interface JourneyModeStore {
   pulseMoons: Record<string, boolean>;
   triggerMoonPulse: (moonId: string) => void;
   resetMoonPulse: (moonId: string) => void;
+
+  isDebugSidebarOpen: boolean;
+  openDebugSidebar: () => void;
+  closeDebugSidebar: () => void;
+  toggleDebugSidebar: () => void;
 }
 
 /**
@@ -292,4 +302,9 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
       )
     }));
   },
+
+  isDebugSidebarOpen: false,
+  openDebugSidebar: () => set({ isDebugSidebarOpen: true }),
+  closeDebugSidebar: () => set({ isDebugSidebarOpen: false }),
+  toggleDebugSidebar: () => set((state) => ({ isDebugSidebarOpen: !state.isDebugSidebarOpen })),
 })); 
