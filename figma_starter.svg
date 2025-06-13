@@ -1,0 +1,13 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- This is a 1200x600 canvas, matching the component's viewBox. -->
+  <!-- Please draw your new path inside this frame. -->
+
+  <!-- Helper dot for the START of the path (100, 500) -->
+  <circle cx="100" cy="500" r="5" fill="#00FF00" />
+  
+  <!-- Helper dot for the END of the path (1050, 200) -->
+  <circle cx="1050" cy="200" r="5" fill="#FF0000" />
+  
+  <!-- You can delete this placeholder path. It's just for reference. -->
+  <path d="M100,500 C175,490 200,510 275,500 S350,490 450,500 C550,450 675,300 750,250 C800,200 950,200 1050,200" stroke="#888888" fill="none" stroke-dasharray="5,5"/>
+</svg> 
