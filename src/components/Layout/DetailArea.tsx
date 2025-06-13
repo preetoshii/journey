@@ -2,36 +2,37 @@
   DetailArea.tsx
   ----------------
   This component renders the detailed view section of the journey page, which appears
-  when the user scrolls down. It displays in-depth information for each moon/goal.
-  It also uses IntersectionObserver to update the focusedMoonIndex based on which
-  goal's content is currently scrolled into view.
+  when the user scrolls down. It displays in-depth information for each moon.
+  It also houses the critical logic that updates the focused moon based on which
+  content card is currently centered in the viewport.
 
   KEY FEATURES:
-  - Occupies the lower half of the scrollable page, becoming visible in "detail mode".
-  - Divided into a two-column layout:
-    - Left Column: Reserved for the "Moon Focus Column" (displaying the large selected moon and small dot moons).
-    - Right Column: Displays detailed content for each goal.
-  - Dynamically generates content sections for each moon.
+  - Renders the right-hand column of content visible in "detail mode".
+  - Dynamically generates content sections for each moon from the store.
   - For each moon, it iterates through predefined detail screen types (e.g., Progress, Growth, Moments)
-    and renders the corresponding component for each type.
-  - Updates `focusedMoonIndex` as the user scrolls through different goal sections.
+    and renders the corresponding component for each type inside a "card".
+  - Uses a scroll event listener to determine which card is closest to the center of the viewport.
+  - Updates `focusedMoonIndex` and `activeCardKey` in the store based on the centered card.
 
   HOW IT WORKS:
-  - Uses a flexbox layout to create the two columns.
-  - Maps over `moonNodes` (filtered for `role === 'moon'`) to create a section for each goal.
-  - Each goal section has a React ref attached.
-  - An `IntersectionObserver` monitors these refs.
-  - When a goal section intersects with the viewport (specifically, when its top is near the vertical center),
-    the `focusedMoonIndex` in the Zustand store is updated to match that goal.
-  - This auto-focusing is disabled if `isDebugMode` is active or if `mode` is not `detail`.
+  - The component attaches a throttled `scroll` event listener to the main scroll container.
+  - On each scroll, it calculates the vertical center of the viewport.
+  - It then iterates through all rendered content cards (stored in `cardRefs`) and calculates their
+    absolute top position relative to the scroll container.
+  - It finds the card whose top position is closest to the viewport's center.
+  - The `key` of this "closest" card is set as the `activeCardKey` in the store, causing it to be
+    highlighted visually (e.g., full opacity).
+  - The moon `id` is parsed from the card key, and the `focusedMoonIndex` is updated in the store,
+    which causes the `MoonVisualizer` to animate the correct moon into focus.
+  - This scroll-based focusing is disabled during programmatic scrolls (e.g., after a click) via the
+    `isAutoScrolling` flag from the store.
 
   USAGE:
-  - Rendered as part of the main scrollable layout in `App.tsx` (or a similar top-level component).
-  - Relies on `moonNodes` for goal data and `detailScreenTypes` for the structure of the detail views.
+  - Rendered inside the main layout grid in `App.tsx`.
+  - Receives a `ref` to the main scroll container to attach its listener.
+  - Relies on `nodes` from the store for content and `detailScreenTypes` for the structure.
 
   PLACEHOLDERS/NOTES:
-  - The left column is currently a simple placeholder `div` and awaits the implementation of the
-    Moon Focus Column visualization.
   - Styling is basic and likely intended for further refinement.
 */
 import React, { useEffect, useRef } from 'react';

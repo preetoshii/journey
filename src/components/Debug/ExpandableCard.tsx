@@ -8,6 +8,17 @@ interface ExpandableCardProps {
   headerAction?: React.ReactNode;
 }
 
+/**
+ * @component ExpandableCard
+ * @description A simple, reusable UI component that displays a card with a header.
+ * The header can be clicked to expand or collapse the card's content.
+ *
+ * @param {string} title - The text to display in the card's header.
+ * @param {boolean} [defaultOpen=false] - Whether the card should be open by default.
+ * @param {React.ReactNode} children - The content to be displayed inside the card when it is open.
+ * @param {React.ReactNode} [headerAction] - An optional React node (e.g., a button) to be
+ *   displayed on the right side of the header.
+ */
 const ExpandableCard: React.FC<ExpandableCardProps> = ({ title, defaultOpen = false, children, headerAction }) => {
   const [open, setOpen] = useState(defaultOpen);
 

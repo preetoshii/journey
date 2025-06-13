@@ -1,16 +1,20 @@
 /*
   types.ts
   -------------------
-  This file defines all shared types and interfaces for the application.
-  It is the single source of truth for node and state types.
+  This file defines shared data structure types and interfaces for the application,
+  primarily focusing on the "content" or "domain" data like moons and goals.
+
+  The main application state type (`JourneyModeStore`) is co-located with the store
+  in `src/store/useJourneyModeStore.ts`.
 
   HOW TO USE:
-  - Import types from this file wherever you need to type nodes or state.
-  - Update this file if you add new node types or state fields.
+  - Import types from this file for data objects like nodes and goals.
+  - Update this file if the data contract for nodes or goals changes.
 
   WHAT IT HANDLES:
-  - Position interface
-  - ZoomNode interface (for sun/moon nodes)
+  - Position: A simple {x, y} coordinate type.
+  - ZoomNode: The core data interface for a "moon".
+  - Goal: The interface for a goal or task associated with a moon.
 */
 
 // --- Position interface ---

@@ -28,6 +28,11 @@ const defaultAccomplishments = [
   },
 ];
 
+/**
+ * A safe version of JSON.stringify that handles circular references, functions,
+ * and DOM elements by replacing them with a placeholder string. This is useful
+ * for displaying the raw Zustand state, which may contain non-serializable values.
+ */
 function safeStringify(obj: any) {
   return JSON.stringify(obj, (key, value) => {
     if (
@@ -40,6 +45,28 @@ function safeStringify(obj: any) {
   }, 2);
 }
 
+/**
+ * @component DebugSidebar
+ * @description A slide-out sidebar component that provides a suite of debugging and testing tools
+ * for developers. It is toggled by the gear icon in the main App.
+ *
+ * It is divided into three main sections, each within an `ExpandableCard`:
+ *
+ * 1.  **State Inspection:** Displays a live, formatted view of the entire Zustand store's state.
+ *     It uses a `safeStringify` function to prevent crashes from non-serializable values like
+ *     functions or DOM elements in the state.
+ *
+ * 2.  **Cutscene Control:** This is the most complex section. It allows for the dynamic creation,
+ *     editing, and triggering of "accomplishment" data.
+ *     - It uses local `useState` to manage a list of accomplishment objects.
+ *     - Developers can add/remove accomplishments, edit their titles/recaps, and associate them
+ *       with specific moons and "inner work" amounts.
+ *     - The "Fire" button triggers the `triggerCutscene` action in the global store with the
+ *       locally constructed accomplishment data.
+ *
+ * 3.  **Experiment Toggles:** Provides checkboxes to toggle experimental or optional features
+ *     like "Scroll Snap" and "Click-to-Center," allowing for easy A/B testing during development.
+ */
 const DebugSidebar: React.FC = () => {
   const isOpen = useJourneyModeStore((s) => s.isDebugSidebarOpen);
   const state = useJourneyModeStore();
