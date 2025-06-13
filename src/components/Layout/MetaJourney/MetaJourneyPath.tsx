@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { motion, useTime, useTransform, useMotionValue, useAnimation } from 'framer-motion';
+import React, { useMemo, useEffect } from 'react';
+import { motion, useTime, useTransform, useMotionValue, useAnimation, animate } from 'framer-motion';
 import { svgPathProperties } from 'svg-path-properties';
 
 // New path data from Figma, broken into logical segments
@@ -14,6 +14,7 @@ const pathData = {
 
 interface MetaJourneyPathProps {
   progress: number;
+  shouldAnimate: boolean;
 }
 
 const colors = {
@@ -22,21 +23,37 @@ const colors = {
   integration: '#00CED1' // DarkTurquoise
 };
 
-const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress }) => {
+export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shouldAnimate }) => {
   const time = useTime();
-  const progressMotionValue = useMotionValue(progress);
+  const progressMotionValue = useMotionValue(0);
+  const markerRadius = useMotionValue(0);
   const controls = useAnimation();
 
-  React.useEffect(() => {
-    progressMotionValue.set(progress);
-  }, [progress, progressMotionValue]);
+  useEffect(() => {
+    if (!shouldAnimate) return;
+    // Animate the progress value when the prop changes
+    animate(progressMotionValue, progress, {
+      type: 'spring',
+      damping: 20,
+      stiffness: 60,
+    });
+    // Also animate the marker radius if progress is starting
+    if (progress > 0) {
+      animate(markerRadius, 16, {
+        type: 'spring',
+        damping: 20,
+        stiffness: 60,
+      });
+    }
+  }, [progress, progressMotionValue, markerRadius, shouldAnimate]);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (!shouldAnimate) return;
     controls.start({
       strokeDashoffset: 0,
       transition: { duration: 1.2, ease: "easeInOut" }
     });
-  }, [controls]);
+  }, [controls, shouldAnimate]);
 
   // The combined path is now static as the wobble is removed
   const discoveryPathString = useMemo(() => pathData.discovery, []);
@@ -57,7 +74,7 @@ const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress }) => {
   const cx = useMotionValue(pathProperties.getPointAtLength(0).x);
   const cy = useMotionValue(pathProperties.getPointAtLength(0).y);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const unsubscribe = progressMotionValue.on("change", (latestProgress) => {
       const p = pathProperties.getPointAtLength(latestProgress * pathLength);
       cx.set(p.x);
@@ -152,7 +169,7 @@ const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress }) => {
       <motion.circle
         cx={cx}
         cy={cy}
-        r="16"
+        r={markerRadius}
         fill="white"
         style={{ filter: 'url(#glow)' }}
       />

@@ -61,6 +61,9 @@ export interface JourneyModeStore {
   isDebugSidebarOpen: boolean;
   closeDebugSidebar: () => void;
   toggleDebugSidebar: () => void;
+
+  metaJourneyProgress: number;
+  setMetaJourneyProgress: (progress: number) => void;
 }
 
 /**
@@ -227,4 +230,7 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   isDebugSidebarOpen: false,
   closeDebugSidebar: () => set({ isDebugSidebarOpen: false }),
   toggleDebugSidebar: () => set((state) => ({ isDebugSidebarOpen: !state.isDebugSidebarOpen })),
+
+  metaJourneyProgress: 0.5,
+  setMetaJourneyProgress: (progress) => set({ metaJourneyProgress: progress }),
 })); 

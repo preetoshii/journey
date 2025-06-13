@@ -78,6 +78,8 @@ const DebugSidebar: React.FC = () => {
   const nodes = useJourneyModeStore((s) => s.nodes);
   const moonNodes = nodes.filter((n) => n.role === 'moon');
   const closeDebugSidebar = useJourneyModeStore((s) => s.closeDebugSidebar);
+  const metaJourneyProgress = useJourneyModeStore(s => s.metaJourneyProgress);
+  const setMetaJourneyProgress = useJourneyModeStore(s => s.setMetaJourneyProgress);
 
   // Local state for accomplishments
   const [accomplishments, setAccomplishments] = useState(defaultAccomplishments);
@@ -248,6 +250,22 @@ const DebugSidebar: React.FC = () => {
               style={{ accentColor: '#4B9BFF', width: 20, height: 20 }}
             />
             Click-to-Center
+          </label>
+        </div>
+      </ExpandableCard>
+      <ExpandableCard title="Meta Journey Progress" defaultOpen={false}>
+        <div style={{ padding: 16 }}>
+          <label style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>
+            Test Progress: {Math.round(metaJourneyProgress * 100)}%
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.001"
+              value={metaJourneyProgress}
+              onChange={e => setMetaJourneyProgress(parseFloat(e.target.value))}
+              style={{ width: 300, marginLeft: 16 }}
+            />
           </label>
         </div>
       </ExpandableCard>

@@ -4,9 +4,10 @@ import BackgroundLayer from './components/Layout/BackgroundLayer';
 import { MoonVisualizer } from './components/Moon/MoonVisualizer';
 import AccomplishmentCutsceneOverlay from './components/Cutscene/AccomplishmentCutsceneOverlay';
 import DebugSidebar from './components/Debug/DebugSidebar';
-import MetaJourneyOverlay from './components/MetaJourneyOverlay';
-import React, { useRef, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
+import MetaJourneyOverlay from './components/Layout/MetaJourney/MetaJourneyOverlay';
+import React, { useRef, useEffect } from 'react';
 
 // Import accomplishment types for dummy data
 import type { Accomplishment } from './types/accomplishmentTypes';
