@@ -65,12 +65,6 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
     });
   }, [isDiscoveryAnimationEnabled, discoveryAmplitude]);
 
-  useEffect(() => {
-    animate(discoveryStrokeWidth, hoveredSegment === 'discovery' ? 6 : 3, { type: 'spring', stiffness: 400, damping: 20 });
-    animate(actionStrokeWidth, hoveredSegment === 'action' ? 6 : 3, { type: 'spring', stiffness: 400, damping: 20 });
-    animate(integrationStrokeWidth, hoveredSegment === 'integration' ? 6 : 3, { type: 'spring', stiffness: 400, damping: 20 });
-  }, [hoveredSegment, discoveryStrokeWidth, actionStrokeWidth, integrationStrokeWidth]);
-
   // Create a wobbling motion value for the discovery path's 'd' attribute
   const wobblingDiscoveryPath = useTransform(
     time,
@@ -319,6 +313,11 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
   const braidPath1 = useTransform(time, t => generateBraidPath(t / 1000, 0));
   const braidPath2 = useTransform(time, t => generateBraidPath(t / 1000, Math.PI));
 
+  const labelActiveOpacity = 1.0;
+  const labelInactiveOpacity = 0.5;
+  const labelActiveFilter = 'brightness(1.5)';
+  const labelInactiveFilter = 'none';
+
   return (
     <svg width="100%" viewBox="0 0 1200 600" style={{ overflow: 'visible' }}>
       <defs>
@@ -546,7 +545,16 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
           fontWeight="400"
           letterSpacing="1"
           textAnchor="start"
-          animate={{ opacity: currentStage === 'discovery' ? activeOpacity : inactiveOpacity }}
+          animate={{
+            opacity:
+              currentStage === 'discovery' || hoveredSegment === 'discovery'
+                ? labelActiveOpacity
+                : labelInactiveOpacity,
+            filter:
+              currentStage === 'discovery' || hoveredSegment === 'discovery'
+                ? labelActiveFilter
+                : labelInactiveFilter,
+          }}
           transition={{ duration: 0.3 }}
         >
           DISCOVERY STAGE
@@ -567,7 +575,16 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
           fontWeight="400"
           letterSpacing="1"
           textAnchor="start"
-          animate={{ opacity: currentStage === 'action' ? activeOpacity : inactiveOpacity }}
+          animate={{
+            opacity:
+              currentStage === 'action' || hoveredSegment === 'action'
+                ? labelActiveOpacity
+                : labelInactiveOpacity,
+            filter:
+              currentStage === 'action' || hoveredSegment === 'action'
+                ? labelActiveFilter
+                : labelInactiveFilter,
+          }}
           transition={{ duration: 0.3 }}
         >
           ACTION STAGE
@@ -588,7 +605,16 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
           fontWeight="400"
           letterSpacing="1"
           textAnchor="end"
-          animate={{ opacity: currentStage === 'integration' ? activeOpacity : inactiveOpacity }}
+          animate={{
+            opacity:
+              currentStage === 'integration' || hoveredSegment === 'integration'
+                ? labelActiveOpacity
+                : labelInactiveOpacity,
+            filter:
+              currentStage === 'integration' || hoveredSegment === 'integration'
+                ? labelActiveFilter
+                : labelInactiveFilter,
+          }}
           transition={{ duration: 0.3 }}
         >
           INTEGRATION STAGE
