@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import type { Accomplishment } from '../types/accomplishmentTypes'; // Correct for Accomplishment
-import type { Goal } from '../types'; // Corrected import for Goal
-// Assuming ZoomNode is also needed for _prepareCutsceneState logic later, ensure it's imported if not already
-import type { ZoomNode } from '../types'; 
-// And the nodes data itself, assuming it's accessible or part of the store for progress updates
-import { nodes as rawNodes } from '../components/Moon/MoonVisualizer'; // Assuming this is the source of truth for now
+import type { Goal, ZoomNode } from '../types';
+import { nodes as initialNodes } from '../data/nodes';
 
 /**
  * @typedef {('idle' | 'starsAppear' | 'starsPause' | 'starsFly' | 'progressBoost' | 'ending')} CutsceneStep
@@ -12,49 +9,6 @@ import { nodes as rawNodes } from '../components/Moon/MoonVisualizer'; // Assumi
  * to show different visuals and behaviors for each step of the sequence.
  */
 export type CutsceneStep = 'idle' | 'starsAppear' | 'starsPause' | 'starsFly' | 'progressBoost' | 'ending';
-
-export interface JourneyModeState {
-  mode: 'overview' | 'detail';
-  focusedMoonIndex: number; // 0 for sun/overview, 1-3 for moons in detail
-  isDebugMode: boolean;
-  scrollContainer: HTMLDivElement | null;
-  isAutoScrolling: boolean;
-  isScrollSnapEnabled: boolean;
-  isClickToCenterEnabled: boolean;
-  activeCardKey: string | null; // For DetailArea card highlighting
-  isMoonHovered: boolean; // Added for Lottie visibility
-
-  // Cutscene State
-  isCutsceneActive: boolean;
-  currentAccomplishments: Accomplishment[] | null;
-  cutsceneStep: CutsceneStep;
-  pendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> | null;
-  nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
-
-  // Actions
-  setMode: (mode: 'overview' | 'detail') => void;
-  setFocusedMoonIndex: (index: number) => void;
-  toggleDebugMode: () => void;
-  setScrollContainer: (container: HTMLDivElement | null) => void;
-  setIsAutoScrolling: (isScrolling: boolean) => void;
-  toggleScrollSnap: () => void;
-  toggleClickToCenter: () => void;
-  setActiveCardKey: (key: string | null) => void;
-  setIsMoonHovered: (isHovered: boolean) => void; // Added action
-  
-  // Cutscene Actions
-  triggerCutscene: (accomplishments: Accomplishment[]) => void;
-  _prepareCutsceneState: (accomplishments: Accomplishment[]) => void;
-  _applyPendingChanges: () => void;
-  _endCutscene: () => void;
-  setCutsceneStep: (step: CutsceneStep) => void;
-  updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
-
-  isDebugSidebarOpen: boolean;
-  openDebugSidebar: () => void;
-  closeDebugSidebar: () => void;
-  toggleDebugSidebar: () => void;
-}
 
 /**
  * @interface JourneyModeStore
@@ -140,7 +94,7 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   currentAccomplishments: null,
   cutsceneStep: 'idle',
   pendingGoalUpdates: null,
-  nodes: rawNodes, // Initialize nodes from the imported data
+  nodes: initialNodes, // Initialize nodes from the imported data
 
   pulseMoons: {},
   triggerMoonPulse: (moonId) => set(state => ({
@@ -171,15 +125,15 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
    *
    * The typical flow is as follows:
    * 1. `triggerCutscene` is called from the UI with a list of accomplishments.
-   * 2. It immediately calls `_prepareCutsceneState`. This internal function calculates the total `progressBoost`
-   *    for each affected moon and creates a `pendingGoalUpdates` object. It also immediately merges the new
-   *    goal text into the `nodes` data so the UI can display them.
+   * 2. It immediately calls `_prepareCutsceneState`. This internal function calculates `pendingGoalUpdates`
+   *    (the total `progressBoost` and new goals for each moon). It also immediately merges the new goals
+   *    and applies a small *visual reduction* in progress to the nodes to create an anticipation effect.
    * 3. `triggerCutscene` then sets `isCutsceneActive` to true and the `cutsceneStep` to 'starsAppear',
    *    which starts the visual animation sequence in the `AccomplishmentCutsceneOverlay` component.
    * 4. The overlay component, as it moves through its animations, calls `setCutsceneStep` to advance the state.
-   * 5. When the animation reaches the 'progressBoost' step, the `_applyPendingChanges` action is called. This
-   *    function takes the `progressBoost` values from `pendingGoalUpdates` and applies them to the `nodes`,
-   *    causing the `ArcProgressBar` components to animate to their new, higher progress values.
+   * 5. When the animation reaches the 'progressBoost' step, `_applyPendingChanges` is called. This function
+   *    applies the full `progressBoost` from `pendingGoalUpdates` to the nodes, causing the progress bars
+   *    to animate to their new, higher values.
    * 6. Finally, `_endCutscene` is called to reset all cutscene-related state variables back to their
    *    default 'idle' values, concluding the sequence.
    */
@@ -190,10 +144,8 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
       cutsceneStep: 'starsAppear',
       currentAccomplishments: accomplishments,
     });
-    console.log('[Cutscene] Triggered with:', accomplishments);
   },
   _prepareCutsceneState: (accomplishments) => {
-    console.log('[Cutscene] Preparing state for accomplishments:', accomplishments);
     const newPendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> = {};
     const currentNodes = get().nodes;
 
@@ -216,84 +168,59 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
     });
 
     const updatedNodes = currentNodes.map(node => {
-      let tempNode = { ...node };
+      const tempNode = { ...node };
       if (newPendingGoalUpdates[tempNode.id]) {
         const currentProgress = tempNode.progress || 0;
+        // Visually "borrow" from the progress bar for the boost animation
         const reduction = Math.min(currentProgress, Math.max(1, newPendingGoalUpdates[tempNode.id].progressBoost * 0.1));
         const newVisualProgress = Math.max(0, currentProgress - reduction);
-        console.warn(`[Cutscene] Visually reducing progress for ${tempNode.id} from ${currentProgress} to ${newVisualProgress}. Boost is ${newPendingGoalUpdates[tempNode.id].progressBoost}`);
         tempNode.progress = newVisualProgress;
 
-        const originalNode = rawNodes.find(rn => rn.id === tempNode.id);
+        // Immediately add new goals to the node's list
+        const originalNode = initialNodes.find(rn => rn.id === tempNode.id);
         const existingGoals = originalNode?.goals || [];
         tempNode.goals = [...existingGoals, ...newPendingGoalUpdates[tempNode.id].newGoals];
-        console.log(`[Cutscene] Immediately adding new goals to ${tempNode.id}. Total goals: ${tempNode.goals.length}`);
       }
       return tempNode;
     });
 
     set({ pendingGoalUpdates: newPendingGoalUpdates, nodes: updatedNodes });
-    console.log('[Cutscene] Pending goal updates calculated (goals merged immediately):', newPendingGoalUpdates);
-    console.log('[Cutscene] Nodes after immediate goal merge:', get().nodes);
-    updatedNodes.forEach(node => {
-      if (newPendingGoalUpdates[node.id]) {
-        console.log(`[Cutscene] Goals for ${node.id}:`, node.goals);
-      }
-    });
   },
   _applyPendingChanges: () => {
-    console.log('[Cutscene] Applying pending progress changes...');
     const { pendingGoalUpdates, nodes } = get();
     if (!pendingGoalUpdates) {
-      console.log('[Cutscene] No pending updates to apply.');
       return;
     }
 
-    const finalNodes = nodes.map(node => {
+    const updatedNodes = nodes.map(node => {
       if (pendingGoalUpdates[node.id]) {
-        // Recalculate original progress to correctly apply the boost.
-        // This assumes 'node.progress' is currently the visually reduced progress.
-        let originalProgress = 0;
-        const originalNodeFromRaw = rawNodes.find(rn => rn.id === node.id);
-        if (originalNodeFromRaw) {
-          originalProgress = originalNodeFromRaw.progress || 0;
-        } else {
-          // Fallback if node not in rawNodes (should not happen with current setup)
-          // or if we want to be super safe, we could try to reverse the reduction
-          // but referencing original rawNodes is safer.
-          console.warn(`[Cutscene] Original node ${node.id} not found in rawNodes for progress calculation. Using current visually reduced progress as base for boost.`);
-          originalProgress = node.progress || 0; // This will be the visually reduced one
-        }
-        
-        const newFinalProgress = Math.min(100, originalProgress + pendingGoalUpdates[node.id].progressBoost);
-        
-        console.log(`[Cutscene] Applying progress to ${node.id}: original progress ${originalProgress}, boost ${pendingGoalUpdates[node.id].progressBoost}, new final progress ${newFinalProgress}. Current visual progress was ${node.progress}`);
-        // newGoals are already merged in _prepareCutsceneState, so only update progress.
-        // Ensure goals from the node (which already has new ones) is preserved.
-        return { ...node, progress: newFinalProgress, goals: node.goals };
+        const currentProgress = node.progress || 0;
+        const boost = pendingGoalUpdates[node.id].progressBoost;
+        return {
+          ...node,
+          progress: Math.min(100, currentProgress + boost)
+        };
       }
       return node;
     });
-    set({ pendingGoalUpdates: null, nodes: finalNodes });
-    console.log("[Cutscene] Final node states after applying progress changes:", get().nodes);
+
+    set({ nodes: updatedNodes, pendingGoalUpdates: null });
   },
   _endCutscene: () => {
-    console.log('[Cutscene] Ending cutscene.');
-    // Potentially refresh nodes from original source if they were only shallow copied for cutscene
-    // For now, assume `_applyPendingChanges` correctly sets the final state.
     set({
       isCutsceneActive: false,
-      cutsceneStep: 'idle',
       currentAccomplishments: null,
+      cutsceneStep: 'idle',
+      pendingGoalUpdates: null,
     });
-    // TODO: Restore scroll
   },
   setCutsceneStep: (step) => set({ cutsceneStep: step }),
+
   updateNodeProgress: (nodeId, newProgress) => {
-    set(state => ({
-      nodes: state.nodes.map(node => 
-        node.id === nodeId ? { ...node, progress: Math.min(100, Math.max(0, newProgress)) } : node
-      )
+    set((state) => ({
+      nodes: state.nodes.map(node =>
+        node.id === nodeId ? { ...node, progress: newProgress } : node
+      ),
     }));
   },
 

@@ -3,7 +3,7 @@
   ------------------
   This component renders the top section of the scrollable journey page, visible on initial load.
   It primarily displays the "North Star" aspiration and its associated text.
-  The moons, while visually part of this overview, are rendered by the `MoonLayer`.
+  The moons, while visually part of this overview, are rendered by the `MoonVisualizer`.
 
   KEY FEATURES:
   - Occupies the full viewport height and width, serving as the initial view.
@@ -23,12 +23,12 @@
 
   USAGE:
   - Rendered as the first main section in the scrollable page layout (e.g., in `App.tsx`).
-  - Works in conjunction with `DetailArea` (which appears below it) and `MoonLayer`
+  - Works in conjunction with `DetailArea` (which appears below it) and `MoonVisualizer`
     (which renders moons on top of it).
 
   RELATIONSHIP TO OTHER COMPONENTS:
-  - `MoonLayer`: Renders moons that visually appear as part of this overview but are in a
-    separate, higher layer.
+  - `MoonVisualizer`: Renders moons that visually appear as part of this overview but are in a
+    separate, sticky layer.
   - `DetailArea`: The section that appears when scrolling past the `OverviewArea`.
   - `useJourneyModeStore`: Provides the `mode` state that triggers the fade animation.
 */

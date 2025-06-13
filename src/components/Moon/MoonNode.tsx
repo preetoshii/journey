@@ -139,11 +139,6 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
     }
   }, [pulseMoons, node.id, resetMoonPulse]);
 
-  // Log moonOrderIndex on mount
-  React.useEffect(() => {
-    console.log(`[MoonNode] moonOrderIndex:`, moonOrderIndex);
-  }, [moonOrderIndex]);
-
   /**
    * Staged Animation on Focus
    * -------------------------
@@ -200,15 +195,14 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
    * central focus.
    *
    * The process involves several steps:
-   * 1. Set Global Mode: It calls `setMode('detail')` on the global store, which triggers UI-wide changes,
-   *    such as the appearance of the back button and the re-positioning of all moons.
-   * 2. Set Focused Moon: It informs the store which moon should be the focus by calling `setFocusedMoonIndex`
-   *    with its own `moonOrderIndex`. This allows the `MoonVisualizer` to calculate the correct positions
-   *    for all moons in the detail view.
-   * 3. Scroll to Detail Card: It finds the first detail content card associated with this moon in the DOM
-   *    and programmatically scrolls the container to bring that card into view. This provides a seamless
-   *    transition from the visual moon to its corresponding textual content. An `isAutoScrolling` flag is
-   *    used to temporarily disable user-scroll-based mode changes during this automated scroll.
+   * 1. Set Global Mode: It calls `setMode('detail')` on the global store.
+   * 2. Set Focused Moon: It informs the store which moon to focus on by calling `setFocusedMoonIndex`
+   *    with its own `moonOrderIndex` (a 1-based index). This allows the `MoonVisualizer` to calculate
+   *    the correct positions for all moons in the detail view.
+   * 3. Scroll to Detail Card: It finds the first content card associated with this moon in the DOM
+   *    (based on the `detailScreenTypes` configuration) and programmatically scrolls the main container
+   *    to bring that card into view. An `isAutoScrolling` flag is used to temporarily disable
+   *    user-scroll-based mode changes during this automated scroll.
    */
   const handleClick = () => {
     if (node.role === 'moon') {
@@ -291,7 +285,6 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
         mixBlendMode: 'screen',
         pointerEvents: isCutsceneActive ? 'none' : 'auto',
       }}
-      data-moon-node='true'
     >
       {/* Pulse effect overlay */}
       <motion.div

@@ -10,31 +10,6 @@ import { useJourneyModeStore } from './store/useJourneyModeStore';
 // Import accomplishment types for dummy data
 import type { Accomplishment } from './types/accomplishmentTypes';
 
-// Dummy data for testing cutscene
-const dummyAccomplishmentsData: Accomplishment[] = [
-  {
-    id: 'accomplishment1',
-    title: 'Mastered Mindfulness',
-    recap: 'After weeks of practice, you can now stay present and focused for extended periods, significantly reducing daily stress.',
-    goals: [
-      { goalId: 'moon1', innerWorkAmount: 10 },
-      { goalId: 'moon2', innerWorkAmount: 5 },
-    ],
-  },
-  {
-    id: 'accomplishment2',
-    title: 'Effective Communication Breakthrough',
-    recap: 'You successfully navigated a series of tough conversations, leading to better team collaboration and understanding.',
-    goals: [{ goalId: 'moon3', innerWorkAmount: 8 }],
-  },
-  {
-    id: 'accomplishment3',
-    title: 'Project Phoenix Completed',
-    recap: 'Successfully launched Project Phoenix ahead of schedule, showcasing strong leadership and execution.',
-    goals: [{ goalId: 'moon1', innerWorkAmount: 7 }],
-  },
-];
-
 /**
  * @component App
  * @description The root component of the application, serving as the main orchestrator for layout,
@@ -52,9 +27,9 @@ const dummyAccomplishmentsData: Accomplishment[] = [
  *     transitioning the application's global state between 'overview' and 'detail' modes based on the
  *     user's scroll position.
  *
- * 3.  **Global Event Handling & Debugging:** It sets up global keyboard listeners for developer use.
- *     This includes toggling a debug menu, forcing specific application states (like focusing on a
- *     particular moon), and triggering application-wide events like the accomplishment cutscene.
+ * 3.  **UI-Driven State Changes:** It renders the primary UI elements like the "Back" button and the
+ *     debug sidebar trigger (gear icon). The `onClick` handlers for these elements dispatch actions
+ *     to the global Zustand store to update the application's state.
  *
  * It pulls state and setters from the `useJourneyModeStore` (Zustand) to react to and update the
  * application's global state in response to user actions.
