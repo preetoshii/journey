@@ -28,7 +28,6 @@ export interface JourneyModeState {
   isCutsceneActive: boolean;
   currentAccomplishments: Accomplishment[] | null;
   cutsceneStep: CutsceneStep;
-  currentAnimatingAccomplishmentIndex: number;
   pendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> | null;
   nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
 
@@ -49,7 +48,6 @@ export interface JourneyModeState {
   _applyPendingChanges: () => void;
   _endCutscene: () => void;
   setCutsceneStep: (step: CutsceneStep) => void;
-  setCurrentAnimatingAccomplishmentIndex: (index: number) => void;
   updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
 
   isDebugSidebarOpen: boolean;
@@ -80,7 +78,6 @@ export interface JourneyModeStore {
   isCutsceneActive: boolean;
   currentAccomplishments: Accomplishment[] | null;
   cutsceneStep: CutsceneStep;
-  currentAnimatingAccomplishmentIndex: number;
   pendingGoalUpdates: Record<string, { progressBoost: number; newGoals: Goal[] }> | null;
   nodes: ZoomNode[]; // Add nodes to the store to manage their state, especially progress
 
@@ -101,7 +98,6 @@ export interface JourneyModeStore {
   _applyPendingChanges: () => void;
   _endCutscene: () => void;
   setCutsceneStep: (step: CutsceneStep) => void;
-  setCurrentAnimatingAccomplishmentIndex: (index: number) => void;
   updateNodeProgress: (nodeId: string, newProgress: number) => void; // Action to update progress
 
   pulseMoons: Record<string, boolean>;
@@ -109,7 +105,6 @@ export interface JourneyModeStore {
   resetMoonPulse: (moonId: string) => void;
 
   isDebugSidebarOpen: boolean;
-  openDebugSidebar: () => void;
   closeDebugSidebar: () => void;
   toggleDebugSidebar: () => void;
 }
@@ -144,7 +139,6 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   isCutsceneActive: false,
   currentAccomplishments: null,
   cutsceneStep: 'idle',
-  currentAnimatingAccomplishmentIndex: -1,
   pendingGoalUpdates: null,
   nodes: rawNodes, // Initialize nodes from the imported data
 
@@ -194,7 +188,6 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
     set({
       isCutsceneActive: true,
       cutsceneStep: 'starsAppear',
-      currentAnimatingAccomplishmentIndex: 0,
       currentAccomplishments: accomplishments,
     });
     console.log('[Cutscene] Triggered with:', accomplishments);
@@ -211,9 +204,12 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
         }
         newPendingGoalUpdates[goalMapping.goalId].progressBoost += goalMapping.innerWorkAmount;
         newPendingGoalUpdates[goalMapping.goalId].newGoals.push({
-          date: new Date().toLocaleDateString(),
+          id: `goal-${acc.id}-${goalMapping.goalId}`, // Create a unique goal ID
           title: acc.title,
           recap: acc.recap,
+          progress: 100, // New goals from accomplishments are always complete
+          completed: true, // Mark as completed
+          date: new Date().toLocaleDateString(),
           status: 'completed',
         });
       });
@@ -289,12 +285,10 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
       isCutsceneActive: false,
       cutsceneStep: 'idle',
       currentAccomplishments: null,
-      currentAnimatingAccomplishmentIndex: -1,
     });
     // TODO: Restore scroll
   },
   setCutsceneStep: (step) => set({ cutsceneStep: step }),
-  setCurrentAnimatingAccomplishmentIndex: (index) => set({ currentAnimatingAccomplishmentIndex: index }),
   updateNodeProgress: (nodeId, newProgress) => {
     set(state => ({
       nodes: state.nodes.map(node => 
@@ -304,7 +298,6 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
   },
 
   isDebugSidebarOpen: false,
-  openDebugSidebar: () => set({ isDebugSidebarOpen: true }),
   closeDebugSidebar: () => set({ isDebugSidebarOpen: false }),
   toggleDebugSidebar: () => set((state) => ({ isDebugSidebarOpen: !state.isDebugSidebarOpen })),
 })); 

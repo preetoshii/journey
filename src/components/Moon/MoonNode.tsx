@@ -21,7 +21,6 @@ import React from 'react';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import { MoonAnimatedBackground } from './MoonAnimatedBackground';
 import { ArcProgressBar } from './ArcProgressBar';
-import { SegmentedArcProgressBar } from './SegmentedArcProgressBar';
 import { RotatingSubtitle } from './RotatingSubtitle';
 import { detailScreenTypes } from '../Layout/detailScreenTypes';
 
@@ -33,7 +32,6 @@ interface MoonNodeProps {
   hoveredMoonId?: string | null;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  mode?: 'overview' | 'detail';
   isFocused?: boolean;
   isDot?: boolean; // always boolean, never null/undefined
   targetX?: number;
@@ -44,7 +42,6 @@ interface MoonNodeProps {
 // Shared constants
 const CIRCLE_L1_SIZE = 440;
 // const SUN_LARGE_SIZE = 400; // Sun-specific constant removed
-const CIRCLE_SMALL_SIZE = 60;
 const BORDER_WIDTH = 3;
 
 // Helper to lighten a hex color
@@ -72,26 +69,6 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// Helper to get phase info based on progress
-function getPhaseInfo(progress: number) {
-  if (progress <= 33.33) {
-    return {
-      name: 'DISCOVERY STAGE',
-      color: '#A3B6FF', // Blueish
-    };
-  }
-  if (progress <= 66.66) {
-    return {
-      name: 'ACTION STAGE',
-      color: '#FFB74D', // Orangeish
-    };
-  }
-  return {
-    name: 'INTEGRATION STAGE',
-    color: '#81C784', // Greenish
-  };
-}
-
 /**
  * @component MoonNode
  * @description This component serves as the primary renderer and state controller for a single moon element
@@ -113,7 +90,7 @@ function getPhaseInfo(progress: number) {
  *
  * Renders a single moon node with animation and click logic.
  */
-export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, mode = 'overview', isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
+export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, isFocused = false, isDot = false, targetX, targetY, targetScale }: MoonNodeProps) => {
   const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling } = useJourneyModeStore();
   const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
   const pulseMoons = useJourneyModeStore(s => s.pulseMoons);

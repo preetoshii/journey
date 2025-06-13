@@ -3,7 +3,6 @@ import DetailArea from './components/Layout/DetailArea';
 import BackgroundLayer from './components/Layout/BackgroundLayer';
 import { MoonVisualizer } from './components/Moon/MoonVisualizer';
 import AccomplishmentCutsceneOverlay from './components/Cutscene/AccomplishmentCutsceneOverlay';
-import ScrollIndicatorLottie from './components/ScrollIndicatorLottie';
 import DebugSidebar from './components/Debug/DebugSidebar';
 import React, { useRef, useEffect } from 'react';
 import { useJourneyModeStore } from './store/useJourneyModeStore';
@@ -77,7 +76,6 @@ function App() {
     toggleClickToCenter,
     triggerCutscene,
     isCutsceneActive,
-    openDebugSidebar,
     toggleDebugSidebar,
   } = useJourneyModeStore();
 
@@ -209,7 +207,6 @@ function App() {
           </div>
       </div>
       </div>
-      {/* <ScrollIndicatorLottie /> */}
       {/* Back button appears only in detail mode */}
       {currentGlobalMode === 'detail' && (
         <button
