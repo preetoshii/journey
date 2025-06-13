@@ -120,8 +120,7 @@ export const MoonVisualizer = () => {
            *
            * The logic follows a clear path:
            * 1. Sun Handling: If the node is the 'sun', it's given a fixed position and is never interactive.
-           * 2. Overview Mode: If the mode is 'overview', all moon nodes are given their default positions and
-           *    a scale of 1. `isFocused` and `isDot` are both false.
+           * 2. Overview Mode: If the mode is 'overview', all moon nodes are given their default positions but shifted down.
            * 3. Detail Mode: If the mode is 'detail', it checks if the current node's index matches the
            *    `focusedMoonIndex` from the store.
            *    - If it's the focused moon, it's assigned the `detailMoonX`/`Y` coordinates and a larger
@@ -146,9 +145,9 @@ export const MoonVisualizer = () => {
             targetOpacity = 0;
             targetScale = 1; // Keep original scale, don't shrink
           } else if (mode === 'overview' || focusedMoonIndex === 0) {
-            // In overview mode, all moons use their default L1 positions.
+            // In overview mode, all moons use their default L1 positions but shifted down.
             targetX = node.positions[currentLevel].x;
-            targetY = node.positions[currentLevel].y;
+            targetY = node.positions[currentLevel].y + 30; // Shift down by 30px
             targetScale = 1;
             isFocused = false;
             isDot = false;

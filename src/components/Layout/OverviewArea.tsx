@@ -66,7 +66,7 @@ const OverviewArea: React.FC = () => {
           position: 'absolute',
           top: '50%',
           left: '50%',
-          transform: 'translate(-50%, calc(-100% - 190px))',
+          transform: 'translate(-50%, calc(-100% - 140px))',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

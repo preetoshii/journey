@@ -92,7 +92,7 @@ function hexToRgba(hex: string, alpha: number) {
  * Renders a single moon node with animation and click logic.
  */
 export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonId, onMouseEnter, onMouseLeave, isFocused = false, isDot = false, targetX, targetY, targetScale, targetOpacity }: MoonNodeProps) => {
-  const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling } = useJourneyModeStore();
+  const { setMode, setFocusedMoonIndex, scrollContainer, setIsAutoScrolling, mode } = useJourneyModeStore();
   const isCutsceneActive = useJourneyModeStore(s => s.isCutsceneActive);
   const pulseMoons = useJourneyModeStore(s => s.pulseMoons);
   const resetMoonPulse = useJourneyModeStore(s => s.resetMoonPulse);
@@ -239,6 +239,18 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
 
   const isDimmed = hoveredMoonId !== null && hoveredMoonId !== node.id;
   
+  const finalOpacity = mode === 'meta'
+    ? targetOpacity
+    : (isDimmed && !isCutsceneActive ? 0.45 : 1);
+
+  const originalTransition = {
+    x: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
+    opacity: { type: "spring", stiffness: 80, damping: 18, mass: 1, bounce: 0.2 },
+    scale: { type: "spring", stiffness: 240, damping: 24 },
+  };
+
+  const metaTransition = { type: 'spring', damping: 30, stiffness: 160 };
+
   /**
    * Framer Motion Animation & Layout
    * --------------------------------
@@ -261,7 +273,7 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
     x: currentPosition.x,
     y: currentPosition.y,
     scale: scale,
-    opacity: targetOpacity ?? (isDot ? 0.7 : 1),
+    opacity: finalOpacity,
   };
 
   const handleTap = () => {
@@ -306,12 +318,12 @@ export const MoonNode = ({ node, moonOrderIndex, staggerOffset = 0, hoveredMoonI
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: '50%',
-        cursor: isDot ? 'default' : 'pointer',
+        cursor: 'pointer',
         pointerEvents: isCutsceneActive ? 'none' : 'auto',
       }}
       initial={false} // Prevent initial animation on load
       animate={animationProps}
-      transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+      transition={mode === 'meta' ? metaTransition : originalTransition}
       whileHover={!isCutsceneActive && !Boolean(isDot) ? { scale: scale * 1.06 } : {}}
       onTap={handleTap}
       onMouseEnter={onMouseEnter}
