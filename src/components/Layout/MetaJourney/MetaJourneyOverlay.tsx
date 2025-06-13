@@ -38,11 +38,16 @@ const MetaJourneyOverlay = () => {
   const progress = useJourneyModeStore(s => s.metaJourneyProgress);
   const currentStage = useJourneyModeStore(s => s.currentStage);
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const setMode = useJourneyModeStore((s) => s.setMode);
 
   useEffect(() => {
     const timer = setTimeout(() => setShouldAnimate(true), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleBackToOverview = () => {
+    setMode('overview');
+  };
 
   return (
     <motion.div
@@ -62,6 +67,35 @@ const MetaJourneyOverlay = () => {
         overflow: 'hidden',
       }}
     >
+      <motion.button
+        onClick={handleBackToOverview}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+        style={{
+          position: 'fixed',
+          top: 56,
+          left: 56,
+          zIndex: 3001,
+          padding: '16px 32px',
+          borderRadius: '28px',
+          background: 'rgba(24,24,24,0.92)',
+          color: 'white',
+          fontFamily: 'Sohne, sans-serif',
+          fontWeight: 400,
+          fontSize: '18px',
+          border: 'none',
+          outline: 'none',
+          boxShadow: '0 2px 16px 0 rgba(0,0,0,0.18)',
+          cursor: 'pointer',
+        }}
+        whileHover={{
+          scale: 1.03,
+          background: 'rgba(32,32,32,0.95)',
+        }}
+      >
+        Back
+      </motion.button>
       <motion.div
         initial={{ opacity: 0, x: -50 + -420, y: -50 + -180 }}
         animate={{ opacity: 1, x: -50 + -420, y: -50 + -180 }}

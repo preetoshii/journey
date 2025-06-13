@@ -128,15 +128,6 @@ function App() {
   const currentGlobalMode = useJourneyModeStore((s) => s.mode);
   const isMetaMode = currentGlobalMode === 'meta';
 
-  // Handler for Back button
-  const handleBackToOverview = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    setMode('overview');
-    setFocusedMoonIndex(0);
-  };
-
   return (
     <>
       <DebugSidebar />
@@ -186,32 +177,6 @@ function App() {
           </div>
       </div>
       </div>
-      {/* Back button appears only in detail mode */}
-      {currentGlobalMode === 'detail' && (
-        <button
-          onClick={handleBackToOverview}
-          style={{
-            position: 'fixed',
-            top: 56,
-            left: 56,
-            zIndex: 10001,
-            background: 'rgba(30,30,30,0.85)',
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            padding: '10px 22px',
-            fontSize: 17,
-            fontFamily: 'Sohne, sans-serif',
-            fontWeight: 500,
-            letterSpacing: '0.08em',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            transition: 'background 0.2s',
-          }}
-        >
-          ← Back
-        </button>
-      )}
       {/* Floating Gear Button (Debug Sidebar Trigger) */}
       <button
         onClick={toggleDebugSidebar}

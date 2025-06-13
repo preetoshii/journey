@@ -39,7 +39,7 @@ import React, { useEffect, useRef } from 'react';
 import { useJourneyModeStore } from '../../store/useJourneyModeStore';
 import { detailScreenTypes } from './detailScreenTypes';
 import type { ZoomNode } from '../../types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DetailAreaProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -55,7 +55,8 @@ const DetailArea: React.FC<DetailAreaProps> = ({ scrollContainerRef }) => {
     setActiveCardKey,
     setIsAutoScrolling,
     isClickToCenterEnabled,
-    focusedMoonIndex
+    focusedMoonIndex,
+    setMode,
   } = useJourneyModeStore();
 
   // Get nodes from store and filter for moons inside the component (fixes invalid hook call)
@@ -160,97 +161,142 @@ const DetailArea: React.FC<DetailAreaProps> = ({ scrollContainerRef }) => {
 
   const isContentVisible = mode === 'detail' && focusedMoonIndex > 0;
 
+  const handleBackToOverview = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setMode('overview');
+    setFocusedMoonIndex(0);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ 
-        opacity: isContentVisible ? 1 : 0,
-        pointerEvents: isContentVisible ? 'auto' : 'none'
-      }}
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        color: 'white',
-        fontSize: 32,
-        position: 'relative',
-      }}
-    >
-      {/* Left half (reserved for moon focus column) */}
-      <div style={{ width: '50vw', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
-      {/* Right half (content column) */}
-      <div style={{ 
-        width: '50vw', 
-        height: '100%', 
-        display: 'flex', 
-        alignItems: 'flex-start', 
-        justifyContent: 'flex-start',
-        paddingTop: 40, 
-        paddingLeft: '5vw'
-      }}>
-        <div style={{ width: 600, display: 'flex', flexDirection: 'column', gap: 64 }}>
-          {moonNodes.map((goal: ZoomNode, goalIndex: number) => (
-            <div 
-              key={goal.id} 
-              id={goal.id}
-              style={{ 
-                marginBottom: '50vh'
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-                {detailScreenTypes.map((screen) => {
-                  const cardKey = `${goal.id}-${screen.key}`;
-                  const isCardActive = activeCardKey === cardKey;
-                  
-                  return (
-                    <motion.div
-                      layout
-                      key={cardKey}
-                      data-card-key={cardKey}
-                      ref={el => { cardRefs.current.set(cardKey, el); }}
-                      onClick={() => handleCardClick(cardKey)}
-                      style={{ 
-                        background: 'transparent',
-                        border: (screen.key === 'active-goals' || screen.key === 'completed-goals') ? 'none' : '1px solid #333333',
-                        borderRadius: 24,
-                        paddingTop: '52px',
-                        paddingRight: '40px',
-                        paddingBottom: '52px',
-                        paddingLeft: '60px',
-                        marginBottom: 24,
-                        textAlign: 'left',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        justifyContent: 'center',
-                        minHeight: 300,
-                        scrollSnapAlign: 'center',
-                        opacity: isCardActive ? 1 : 0.15,
-                        transition: 'opacity 0.3s ease-in-out',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div 
+    <>
+      <AnimatePresence>
+        {mode === 'detail' && (
+          <motion.button
+            key="back-button-detail"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={handleBackToOverview}
+            style={{
+              position: 'fixed',
+              top: 56,
+              left: 56,
+              zIndex: 10001,
+              padding: '16px 32px',
+              borderRadius: '28px',
+              background: 'rgba(24,24,24,0.92)',
+              color: 'white',
+              fontFamily: 'Sohne, sans-serif',
+              fontWeight: 400,
+              fontSize: '18px',
+              border: 'none',
+              outline: 'none',
+              boxShadow: '0 2px 16px 0 rgba(0,0,0,0.18)',
+              cursor: 'pointer',
+            }}
+            whileHover={{
+              scale: 1.03,
+              background: 'rgba(32,32,32,0.95)',
+            }}
+          >
+            Back
+          </motion.button>
+        )}
+      </AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ 
+          opacity: isContentVisible ? 1 : 0,
+          pointerEvents: isContentVisible ? 'auto' : 'none'
+        }}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          color: 'white',
+          fontSize: 32,
+          position: 'relative',
+        }}
+      >
+        {/* Left half (reserved for moon focus column) */}
+        <div style={{ width: '50vw', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
+        {/* Right half (content column) */}
+        <div style={{ 
+          width: '50vw', 
+          height: '100%', 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          justifyContent: 'flex-start',
+          paddingTop: 40, 
+          paddingLeft: '5vw'
+        }}>
+          <div style={{ width: 600, display: 'flex', flexDirection: 'column', gap: 64 }}>
+            {moonNodes.map((goal: ZoomNode, goalIndex: number) => (
+              <div 
+                key={goal.id} 
+                id={goal.id}
+                style={{ 
+                  marginBottom: '50vh'
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+                  {detailScreenTypes.map((screen) => {
+                    const cardKey = `${goal.id}-${screen.key}`;
+                    const isCardActive = activeCardKey === cardKey;
+                    
+                    return (
+                      <motion.div
+                        layout
+                        key={cardKey}
+                        data-card-key={cardKey}
+                        ref={el => { cardRefs.current.set(cardKey, el); }}
+                        onClick={() => handleCardClick(cardKey)}
                         style={{ 
-                          fontFamily: "'Ivar Display', serif",
-                          fontSize: '36px', 
-                          fontWeight: 400,  
-                          color: '#FFFFFF', 
-                          marginBottom: '24px'
+                          background: 'transparent',
+                          border: (screen.key === 'active-goals' || screen.key === 'completed-goals') ? 'none' : '1px solid #333333',
+                          borderRadius: 24,
+                          paddingTop: '52px',
+                          paddingRight: '40px',
+                          paddingBottom: '52px',
+                          paddingLeft: '60px',
+                          marginBottom: 24,
+                          textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          justifyContent: 'center',
+                          minHeight: 300,
+                          scrollSnapAlign: 'center',
+                          opacity: isCardActive ? 1 : 0.15,
+                          transition: 'opacity 0.3s ease-in-out',
+                          cursor: 'pointer'
                         }}
                       >
-                        {screen.label}
-                      </div>
-                    <screen.component goal={goal} />
-                    </motion.div>
-                  );
-                })}
+                        <div 
+                          style={{ 
+                            fontFamily: "'Ivar Display', serif",
+                            fontSize: '36px', 
+                            fontWeight: 400,  
+                            color: '#FFFFFF', 
+                            marginBottom: '24px'
+                          }}
+                        >
+                          {screen.label}
+                        </div>
+                      <screen.component goal={goal} />
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 
