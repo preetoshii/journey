@@ -141,64 +141,8 @@ This component uses an `IntersectionObserver` to track the user's scroll focus.
 
 ---
 
-## SECTION 4: INTEGRATION GUIDE
 
-### 4.1. BUILD ENVIRONMENT
-
--   The application is built with **Vite**.
--   Ensure your host environment is compatible with `react`, `react-dom`, `zustand`, and `framer-motion`.
--   The codebase uses absolute imports (e.g., `import Foo from 'src/components/Foo'`). Your build system must be configured to resolve these paths correctly from the `src` directory.
-
-### 4.2. CONCEPTUAL INTEGRATION STEPS
-
-#### 🧱 DOM & Styling
-
-1.  Wrap the main Journey Page component in a container that has `position: relative` and a defined height (`height: 100vh` or `height: 800px`, etc.).
-2.  Provide a scrollable element (e.g., a `div` with `overflow-y: scroll`) and pass its DOM reference to the store immediately after it mounts:
-    ```ts
-    const scrollRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      if (scrollRef.current) {
-        useJourneyModeStore.getState().setScrollContainer(scrollRef.current);
-      }
-    }, []);
-    ```
-3.  Themeing can be accomplished by overriding the root CSS variables. Key variables include:
-    -   `--theme-primary-color`
-    -   `--theme-background-color`
-    -   `--moon-title-font-size`
-
-#### 💾 Data Hydration
-
-Fetch your journey data and set it in the store, typically within a `useEffect` hook.
-```ts
-useEffect(() => {
-  // Assuming `fetchJourneyData` is a function that returns a Promise<ZoomNode[]>
-  fetchJourneyData().then(data => {
-    useJourneyModeStore.getState().setNodes(data);
-  });
-}, []);
-```
-
-#### 🧭 Programmatic Control
-
-You can control the journey's state programmatically from an external source (like a Redux store or another part of your app). It is recommended to add a helper function to the store to allow focusing a moon by its `id` rather than its index.
-
-*In `useJourneyModeStore.ts`:*
-```ts
-focusMoonById: (id: string) => {
-  const nodes = get().nodes;
-  const index = nodes.findIndex(n => n.id === id);
-  if (index !== -1) {
-    get().setFocusedMoonIndex(index);
-  }
-}
-```
-
----
-
-## SECTION 5: DEVELOPMENT AND DEBUGGING
+## SECTION 4: DEVELOPMENT AND DEBUGGING
 
 #### 🧪 Debug Mode
 
@@ -210,7 +154,7 @@ A debug panel can be toggled via the Settings icon in the UI. This panel allows 
 
 ---
 
-## SECTION 6: PORTING GUIDE & KNOWN QUIRKS
+## SECTION 5: PORTING GUIDE & KNOWN QUIRKS
 
 This section contains critical information for any developer tasked with integrating the Journey Page into a larger host application. The component makes several key assumptions about its environment which must be respected for it to function correctly.
 
