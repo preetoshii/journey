@@ -70,6 +70,14 @@ export interface JourneyModeStore {
   actionEndProgress: number;
   currentStage: 'discovery' | 'action' | 'integration';
   setStageProgressThresholds: (discoveryEnd: number, actionEnd: number) => void;
+
+  // Animation Controls
+  isDiscoveryAnimationEnabled: boolean;
+  isActionAnimationEnabled: boolean;
+  isIntegrationAnimationEnabled: boolean;
+  setDiscoveryAnimationEnabled: (enabled: boolean) => void;
+  setActionAnimationEnabled: (enabled: boolean) => void;
+  setIntegrationAnimationEnabled: (enabled: boolean) => void;
 }
 
 /**
@@ -246,7 +254,13 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
     } else if (progress <= actionEndProgress) {
       stage = 'action';
     }
-    set({ metaJourneyProgress: progress, currentStage: stage });
+    set({ 
+      metaJourneyProgress: progress, 
+      currentStage: stage,
+      isDiscoveryAnimationEnabled: stage === 'discovery',
+      isActionAnimationEnabled: stage === 'action',
+      isIntegrationAnimationEnabled: stage === 'integration',
+    });
   },
 
   discoveryEndProgress: 0.33,
@@ -257,4 +271,12 @@ export const useJourneyModeStore = create<JourneyModeStore>((set, get) => ({
     // Recalculate current stage with new thresholds
     get().setMetaJourneyProgress(get().metaJourneyProgress);
   },
+
+  // Animation Controls
+  isDiscoveryAnimationEnabled: false,
+  isActionAnimationEnabled: false,
+  isIntegrationAnimationEnabled: false,
+  setDiscoveryAnimationEnabled: (enabled) => set({ isDiscoveryAnimationEnabled: enabled }),
+  setActionAnimationEnabled: (enabled) => set({ isActionAnimationEnabled: enabled }),
+  setIntegrationAnimationEnabled: (enabled) => set({ isIntegrationAnimationEnabled: enabled }),
 })); 

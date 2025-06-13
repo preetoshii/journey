@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { motion, useTime, useTransform, useMotionValue, useAnimation, animate } from 'framer-motion';
 import { svgPathProperties } from 'svg-path-properties';
 import { stageColors } from './colors';
@@ -28,12 +28,54 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
   const controls = useAnimation();
   const setStageProgressThresholds = useJourneyModeStore((s: JourneyModeStore) => s.setStageProgressThresholds);
   const currentStage = useJourneyModeStore((s: JourneyModeStore) => s.currentStage);
+  
+  // Animation control flags
+  const isDiscoveryAnimationEnabled = useJourneyModeStore(s => s.isDiscoveryAnimationEnabled);
+  const isActionAnimationEnabled = useJourneyModeStore(s => s.isActionAnimationEnabled);
+  const isIntegrationAnimationEnabled = useJourneyModeStore(s => s.isIntegrationAnimationEnabled);
+  const setDiscoveryAnimationEnabled = useJourneyModeStore(s => s.setDiscoveryAnimationEnabled);
+  const setActionAnimationEnabled = useJourneyModeStore(s => s.setActionAnimationEnabled);
+  const setIntegrationAnimationEnabled = useJourneyModeStore(s => s.setIntegrationAnimationEnabled);
+
+  // Create motion values to smoothly toggle animation opacities/amplitudes
+  const actionPulseOpacity = useMotionValue(isActionAnimationEnabled ? 1 : 0);
+  const integrationBraidOpacity = useMotionValue(isIntegrationAnimationEnabled ? 1 : 0);
+  const discoveryAmplitude = useMotionValue(isDiscoveryAnimationEnabled ? 1.5 : 0);
+
+  const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
+
+  // Animate stroke widths for hover effect
+  const discoveryStrokeWidth = useMotionValue(3);
+  const actionStrokeWidth = useMotionValue(3);
+  const integrationStrokeWidth = useMotionValue(3);
+
+  useEffect(() => {
+    animate(actionPulseOpacity, isActionAnimationEnabled ? 1 : 0, { duration: 0.15 });
+  }, [isActionAnimationEnabled, actionPulseOpacity]);
+
+  useEffect(() => {
+    animate(integrationBraidOpacity, isIntegrationAnimationEnabled ? 1 : 0, { duration: 0.15 });
+  }, [isIntegrationAnimationEnabled, integrationBraidOpacity]);
+
+  useEffect(() => {
+    animate(discoveryAmplitude, isDiscoveryAnimationEnabled ? 1.5 : 0, { 
+      type: 'spring',
+      damping: 20,
+      stiffness: 200,
+    });
+  }, [isDiscoveryAnimationEnabled, discoveryAmplitude]);
+
+  useEffect(() => {
+    animate(discoveryStrokeWidth, hoveredSegment === 'discovery' ? 6 : 3, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(actionStrokeWidth, hoveredSegment === 'action' ? 6 : 3, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(integrationStrokeWidth, hoveredSegment === 'integration' ? 6 : 3, { type: 'spring', stiffness: 400, damping: 20 });
+  }, [hoveredSegment, discoveryStrokeWidth, actionStrokeWidth, integrationStrokeWidth]);
 
   // Create a wobbling motion value for the discovery path's 'd' attribute
   const wobblingDiscoveryPath = useTransform(
     time,
     t => {
-      const amplitude = 1.5;
+      const amplitude = discoveryAmplitude.get(); // Use the animated amplitude
       const period = 4000;
       const waveLength = 160;
 
@@ -187,6 +229,96 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
   const actionSegmentPath = `M ${actionStart.x} ${actionStart.y} ${pathData.action}`;
   const integrationSegmentPath = `M ${integrationStart.x} ${integrationStart.y} ${pathData.integration}`;
 
+  // Looping value for the action pulse animation (runs continuously 0-1)
+  const rawPulseTime = useTransform(time, t => (t / 2500) % 1);
+
+  // Animate pulse opacity based on progress and pulse position
+  const pulseFinalOpacity = useMotionValue(0);
+  useEffect(() => {
+    const updateOpacity = () => {
+      const p = progressMotionValue.get();
+      const t = rawPulseTime.get();
+      
+      let stage: 'discovery' | 'action' | 'integration' = 'integration';
+      if (p <= discoveryEndProgress) stage = 'discovery';
+      else if (p <= actionEndProgress) stage = 'action';
+
+      if (stage !== 'action') {
+        pulseFinalOpacity.set(0);
+        return;
+      }
+
+      const actionSegmentProgress = (p - discoveryEndProgress) / (actionEndProgress - discoveryEndProgress);
+      const endPoint = Math.max(0.01, Math.min(actionSegmentProgress, 1));
+      
+      if (t > endPoint) {
+        pulseFinalOpacity.set(0);
+        return;
+      }
+
+      const journeyProgress = t / endPoint;
+      const fadeInDuration = 0.2;
+      const fadeOutDuration = 0.2;
+
+      if (journeyProgress < fadeInDuration) {
+        pulseFinalOpacity.set(journeyProgress / fadeInDuration);
+      } else if (journeyProgress > 1 - fadeOutDuration) {
+        pulseFinalOpacity.set((1 - journeyProgress) / fadeOutDuration);
+      } else {
+        pulseFinalOpacity.set(1);
+      }
+    };
+
+    const unsubProgress = progressMotionValue.on("change", updateOpacity);
+    const unsubTime = rawPulseTime.on("change", updateOpacity);
+
+    return () => {
+      unsubProgress();
+      unsubTime();
+    };
+  }, [progressMotionValue, rawPulseTime, discoveryEndProgress, actionEndProgress, pulseFinalOpacity]);
+
+  const integrationProperties = useMemo(() => {
+    return new svgPathProperties(integrationSegmentPath);
+  }, [integrationSegmentPath]);
+
+  const generateBraidPath = (timeValue: number, phase: number) => {
+    const amplitude = 3;
+    const frequency = 0.05;
+    const pathPoints = [];
+    const totalLength = integrationProperties.getTotalLength();
+
+    for (let length = 0; length < totalLength; length += 5) {
+      const progress = length / totalLength;
+      
+      // Calculate a dynamic amplitude that fades in and out
+      const fadeInDuration = 0.15; // 15% of the path
+      const fadeOutDuration = 0.15; // 15% of the path
+      let currentAmplitude = amplitude;
+      if (progress < fadeInDuration) {
+        currentAmplitude = amplitude * (progress / fadeInDuration);
+      } else if (progress > 1 - fadeOutDuration) {
+        currentAmplitude = amplitude * ((1 - progress) / fadeOutDuration);
+      }
+
+      const point = integrationProperties.getPointAtLength(length);
+      const tangent = integrationProperties.getTangentAtLength(length);
+      const normal = { x: -tangent.y, y: tangent.x };
+      
+      const offset = currentAmplitude * Math.sin(frequency * length - timeValue * 2 + phase);
+      
+      pathPoints.push({
+        x: point.x + normal.x * offset,
+        y: point.y + normal.y * offset,
+      });
+    }
+    
+    return `M ${pathPoints[0].x} ${pathPoints[0].y} ${pathPoints.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')}`;
+  };
+
+  const braidPath1 = useTransform(time, t => generateBraidPath(t / 1000, 0));
+  const braidPath2 = useTransform(time, t => generateBraidPath(t / 1000, Math.PI));
+
   return (
     <svg width="100%" viewBox="0 0 1200 600" style={{ overflow: 'visible' }}>
       <defs>
@@ -233,6 +365,13 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
           <stop offset="97%" stopColor={stageColors.integration} />
           <stop offset="100%" stopColor={stageColors.integration} stopOpacity="0" />
         </linearGradient>
+
+        {/* --- Gradient for the Action Pulse --- */}
+        <linearGradient id="action-pulse-gradient" x1={actionStart.x} y1={actionStart.y} x2={actionEnd.x} y2={actionEnd.y} gradientUnits="userSpaceOnUse">
+          <motion.stop offset={useTransform(rawPulseTime, v => v - 0.1)} stopColor={stageColors.action} stopOpacity="0" />
+          <motion.stop offset={rawPulseTime} stopColor="#FFF500" stopOpacity={pulseFinalOpacity} />
+          <motion.stop offset={useTransform(rawPulseTime, v => v + 0.1)} stopColor={stageColors.action} stopOpacity="0" />
+        </linearGradient>
       </defs>
 
       {/* --- Dimmed Background Path --- */}
@@ -241,7 +380,7 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         <motion.path
           d={wobblingDiscoveryPath}
           stroke="url(#discovery-gradient)"
-          strokeWidth="3"
+          strokeWidth={discoveryStrokeWidth}
           fill="none"
           strokeDasharray={discoveryPathLength}
           initial={{ strokeDashoffset: discoveryPathLength }}
@@ -250,7 +389,7 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         <motion.path
           d={actionSegmentPath}
           stroke="url(#action-gradient)"
-          strokeWidth="3"
+          strokeWidth={actionStrokeWidth}
           fill="none"
           strokeDasharray={actionPathLength - discoveryPathLength}
           initial={{ strokeDashoffset: actionPathLength - discoveryPathLength }}
@@ -259,7 +398,7 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         <motion.path
           d={integrationSegmentPath}
           stroke="url(#integration-gradient)"
-          strokeWidth="3"
+          strokeWidth={integrationStrokeWidth}
           fill="none"
           strokeDasharray={pathLength - actionPathLength}
           initial={{ strokeDashoffset: pathLength - actionPathLength }}
@@ -267,26 +406,119 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         />
       </g>
 
+      {/* --- Integration Stage Braid --- */}
+      <motion.g opacity={integrationBraidOpacity}>
+        <g style={{ filter: 'url(#glow)', opacity: 0.6 }}>
+          <motion.path
+            d={braidPath1}
+            stroke={stageColors.integration}
+            strokeWidth="1.5"
+            fill="none"
+          />
+          <motion.path
+            d={braidPath2}
+            stroke={stageColors.integration}
+            strokeWidth="1.5"
+            fill="none"
+          />
+        </g>
+      </motion.g>
+
+      {/* --- Action Stage Pulse --- */}
+      <motion.g opacity={actionPulseOpacity}>
+        <motion.path
+          d={actionSegmentPath}
+          stroke="url(#action-pulse-gradient)"
+          strokeWidth="5"
+          fill="none"
+          style={{ filter: 'url(#glow)' }}
+          strokeDasharray={actionPathLength - discoveryPathLength}
+          initial={{ strokeDashoffset: actionPathLength - discoveryPathLength }}
+          animate={controls}
+        />
+      </motion.g>
+
       {/* --- Bright Foreground Paths (masked) --- */}
       <g style={{ filter: 'url(#highlight-glow)', mask: 'url(#trailing-mask)' }}>
         {/* Draw each segment individually with its own gradient */}
         <motion.path
           d={wobblingDiscoveryPath}
           stroke="url(#discovery-gradient)"
-          strokeWidth="3"
+          strokeWidth={discoveryStrokeWidth}
           fill="none"
         />
-        <path
+        <motion.path
           d={actionSegmentPath}
           stroke="url(#action-gradient)"
-          strokeWidth="3"
+          strokeWidth={actionStrokeWidth}
           fill="none"
         />
-        <path
+        <motion.path
           d={integrationSegmentPath}
           stroke="url(#integration-gradient)"
-          strokeWidth="3"
+          strokeWidth={integrationStrokeWidth}
           fill="none"
+        />
+      </g>
+
+      {/* --- INVISIBLE HOVER HITBOXES (MUST BE LAST TO BE ON TOP) --- */}
+      <g>
+        <motion.path
+          d={wobblingDiscoveryPath}
+          stroke="transparent"
+          strokeWidth="300"
+          fill="none"
+          onMouseEnter={() => {
+            setHoveredSegment('discovery');
+            if (currentStage !== 'discovery') {
+              setDiscoveryAnimationEnabled(true);
+            }
+          }}
+          onMouseLeave={() => {
+            setHoveredSegment(null);
+            if (currentStage !== 'discovery') {
+              setDiscoveryAnimationEnabled(false);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        />
+        <motion.path
+          d={actionSegmentPath}
+          stroke="transparent"
+          strokeWidth="300"
+          fill="none"
+          onMouseEnter={() => {
+            setHoveredSegment('action');
+            if (currentStage !== 'action') {
+              setActionAnimationEnabled(true);
+            }
+          }}
+          onMouseLeave={() => {
+            setHoveredSegment(null);
+            if (currentStage !== 'action') {
+              setActionAnimationEnabled(false);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        />
+        <motion.path
+          d={integrationSegmentPath}
+          stroke="transparent"
+          strokeWidth="300"
+          fill="none"
+          onMouseEnter={() => {
+            setHoveredSegment('integration');
+            if (currentStage !== 'integration') {
+              setIntegrationAnimationEnabled(true);
+            }
+          }}
+          onMouseLeave={() => {
+            setHoveredSegment(null);
+            if (currentStage !== 'integration') {
+              setIntegrationAnimationEnabled(false);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
         />
       </g>
 
@@ -303,6 +535,7 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9, duration: 0.5 }}
+        style={{ pointerEvents: 'none' }}
       >
         <motion.text
           x={discoveryLabel.x - 60}
@@ -323,6 +556,7 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9, duration: 0.5 }}
+        style={{ pointerEvents: 'none' }}
       >
         <motion.text
           x={actionLabel.x + 45}
@@ -343,6 +577,7 @@ export const MetaJourneyPath: React.FC<MetaJourneyPathProps> = ({ progress, shou
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9, duration: 0.5 }}
+        style={{ pointerEvents: 'none' }}
       >
         <motion.text
           x={integrationLabel.x + 40}
